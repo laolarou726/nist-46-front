@@ -31,9 +31,9 @@
 
       <v-container class="pa-0 mt-8">
         <v-row no-gutters>
-          <v-col>
+          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'">
             <v-card
-              class="mx-auto mr-4 fill-height"
+              class="mx-auto fill-height"
               variant="outlined"
             >
               <v-card-item>
@@ -53,9 +53,9 @@
               </v-list>
             </v-card>
           </v-col>
-          <v-col>
+          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'">
             <v-card
-              class="mx-auto ml-4 fill-height"
+              class="mx-auto fill-height"
               variant="outlined"
             >
               <v-card-item>
@@ -112,14 +112,17 @@
           </div>
         </v-card-item>
 
-        <v-row no-gutters>
-          <v-col>
-            <div id="mol2D" :style="molViewStyle"></div>
-          </v-col>
-          <v-col>
-            <div id="mol3D" :style="molViewStyle"></div>
-          </v-col>
-        </v-row>
+        <v-container>
+          <v-row no-gutters>
+            <v-col xs="12" md="6">
+              <div id="mol2D" :style="molViewStyle"></div>
+            </v-col>
+            <v-col xs="12" md="6">
+              <div id="mol3D" :style="molViewStyle"></div>
+            </v-col>
+          </v-row>
+        </v-container>
+
 
         <v-card-actions>
           <v-btn variant="outlined" prepend-icon="mdi-cube-scan" @click="load3DMol">
