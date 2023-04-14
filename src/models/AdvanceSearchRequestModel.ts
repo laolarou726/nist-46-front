@@ -8,7 +8,6 @@ export class SearchRequestModel {
   chemicals?: string;
 
   public onlyHasLigands(): boolean{
-    console.log(this.ligands)
     return !!this.ligands && !this.metals && !this.categories && !this.ligandCharges && !this.metalCharges && !this.chemicals;
   }
 

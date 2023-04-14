@@ -132,6 +132,7 @@
       <v-data-table
         v-else
         v-model:items-per-page="itemsPerPage"
+        multi-sort
         :headers="headers"
         :items="constants"
         class="mt-8 elevation-1"

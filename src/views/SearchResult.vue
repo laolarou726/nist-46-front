@@ -101,7 +101,6 @@
           </v-data-table>
         </v-col>
       </v-row>
-
     </v-responsive>
   </v-container>
 </template>
@@ -132,6 +131,8 @@ export default {
       { title: 'Central Element', align: 'end', key: 'central_element' },
       { title: 'Molecular Formula', align: 'end', key: 'molecular_formula' },
       { title: 'Categories', align: 'end', key: 'categories' },
+      { title: 'Ligand ID', align: 'end', key: 'ligand_id'},
+      { title: 'Metal ID', align: 'end', key: 'metal_id'}
     ],
     searchResult: [],
     groupKeys: []
@@ -145,7 +146,6 @@ export default {
 
       for(const state of this.groupKeys){
         if(!state.isChecked) continue
-        console.log(state.key)
         temp.push({key: state.key})
       }
 
