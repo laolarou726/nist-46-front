@@ -5,17 +5,6 @@
         class="mx-auto"
         variant="outlined"
       >
-        <v-card-item>
-          <div>
-            <div class="d-flex text-overline mb-1">
-              DETAIL
-            </div>
-            <div class="d-flex text-h6 mb-1">
-              Detail Result
-            </div>
-          </div>
-        </v-card-item>
-
         <v-card-actions>
           <v-btn variant="outlined" prepend-icon="mdi-arrow-left" @click="returnToSearchResultPage">
             Return To Search Page
@@ -43,10 +32,11 @@
                   </div>
                   <div class="d-flex text-h6 mb-1">
                     Ligand Basic Information
+                    (<div v-html="element_with_charge"></div>)
                   </div>
                 </div>
               </v-card-item>
-              <v-list :items="items" class="text-left">
+              <v-list :items="items" class="text-left" density="compact" style="overflow-y: auto; height: 160px;">
                 <template v-slot:title="{ title }">
                   <div v-html="title"></div>
                 </template>
@@ -68,7 +58,7 @@
                   </div>
                 </div>
               </v-card-item>
-              <div class="text-left text-h2 pl-5 pb-8" v-html="this.molecular_formula"></div>
+              <div class="text-left text-h4 pl-5 pb-8" v-html="this.molecular_formula"></div>
               <div class="text-left pl-5 pb-8" v-if="this.smileStr">Smiles String: {{this.smileStr}}</div>
               <div class="text-left ml-2">
                 <v-chip
@@ -115,14 +105,13 @@
         <v-container>
           <v-row no-gutters>
             <v-col xs="12" md="6">
-              <div id="mol2D" :style="molViewStyle"></div>
+              <div id="mol2D" :style="molViewStyle" class="disabled"></div>
             </v-col>
             <v-col xs="12" md="6">
               <div id="mol3D" :style="molViewStyle"></div>
             </v-col>
           </v-row>
         </v-container>
-
 
         <v-card-actions>
           <v-btn variant="outlined" prepend-icon="mdi-cube-scan" @click="load3DMol">
@@ -131,7 +120,17 @@
         </v-card-actions>
       </v-card>
 
+      <v-alert
+        v-if="noDataAvailable"
+        type="error"
+        title="No Data Available"
+        text="It appears that this particular combination does not have available data for presentation. Therefore, the data table has been hidden."
+        variant="tonal"
+        icon="mdi-flask-empty-off-outline"
+        class="mt-8 text-left"
+      ></v-alert>
       <v-data-table
+        v-else
         v-model:items-per-page="itemsPerPage"
         :headers="headers"
         :items="constants"
@@ -152,6 +151,14 @@
             </td>
           </tr>
         </template>
+        <template v-slot:item.constant_kind="{ item }">
+          <v-chip :color="getConstantKindBadgeColor(item.raw.constant_kind)">
+            <div class="no-katex-html" v-html="getFormattedConstantKind(item.raw.constant_kind)"></div>
+          </v-chip>
+        </template>
+        <template v-slot:item.expression_string="{ item }">
+          <div class="no-katex-html" v-html="convertExpressionToLatex(item.raw.expression_string)"></div>
+        </template>
       </v-data-table>
 
       <v-card
@@ -169,7 +176,7 @@
             </div>
           </div>
         </v-card-item>
-        <v-list lines="one" class="text-left">
+        <v-list lines="one" class="text-left" style="overflow-y: auto; max-height: 400px;">
           <v-list-item
             v-for="ref in references"
             :key="ref.title"
@@ -183,6 +190,16 @@
   </v-container>
 </template>
 
+<style>
+.disabled{
+  pointer-events: none;
+}
+
+.no-katex-html .katex-html{
+  display: none;
+}
+</style>
+
 <script lang="ts">
 import {searchResultStore} from "@/stores/searchResultStore";
 import {
@@ -194,6 +211,8 @@ import {useTheme} from "vuetify";
 import FootNoteUtils from "@/utils/FootNoteUtils";
 import { useMeta } from 'vue-meta'
 import "openchemlib/full"
+import ElementDisplayUtils from "@/utils/ElementDisplayUtils";
+import katex from "katex"
 
 export default {
   name: "DetailView",
@@ -207,14 +226,15 @@ export default {
     categories: [],
     molecular_formula: null,
     itemsPerPage: 5,
+    element_with_charge: '',
     headers: [
       {
         title: 'Expression',
         align: 'start',
         key: 'expression_string',
       },
-      { title: 'Constant Kind', align: 'end', key: 'constant_kind' },
       { title: 'Value', align: 'end', key: 'value' },
+      { title: 'Constant Kind', align: 'end', key: 'constant_kind' },
       { title: 'Temp (°C)', align: 'end', key: 'temperature' },
       { title: 'Ionic Strength', align: 'end', key: 'ionic_strength' },
       { title: '', key: 'data-table-expand' }
@@ -225,7 +245,8 @@ export default {
     molLoaded: false,
     molData: null,
     references: null,
-    smileStr: null
+    smileStr: null,
+    noDataAvailable: false
   }),
   methods: {
     async load3DMol(){
@@ -281,6 +302,19 @@ export default {
     },
     returnToSearchResultPage(){
       this.$router.go(-1)
+    },
+    getFormattedConstantKind(kind: string){
+      const latexStr = ElementDisplayUtils.formatConstantKindLatex(kind)
+
+      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
+    },
+    getConstantKindBadgeColor(kind: string){
+      return ElementDisplayUtils.constantKindColor(kind)
+    },
+    convertExpressionToLatex(str: string){
+      const latexStr = ElementDisplayUtils.formatExpressionToLatex(str)
+
+      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     }
   },
   mounted() {
@@ -289,6 +323,7 @@ export default {
     this.selectedSearchResult = store.selectedSearchResult
     this.categories = store.selectedSearchResult.categories?.split(',')
     this.molecular_formula = store.selectedSearchResult.molecular_formula
+    this.element_with_charge = `${store.selectedSearchResult.central_element}<sup>${ElementDisplayUtils.formatElementCharge(store.selectedSearchResult.metal_charge)}</sup>`
     this.items = []
 
     for(const key of Object.keys(store.selectedSearchResult)){
@@ -316,6 +351,11 @@ export default {
           temp.molecular_formula = result[0].molecular_formula
 
           this.molecular_formula = ProcessedLigandAdvanceSearchResultModel.process(temp).molecular_formula
+        }
+
+        if(result.length === 1 && result[0].expression_string === "*"){
+          this.noDataAvailable = true
+          return
         }
 
         this.constants = result

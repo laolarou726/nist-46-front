@@ -119,7 +119,7 @@ export default {
   },
   data: () => ({
     itemsPerPage: 50,
-    groupBy: [{key: 'name'}],
+    groupBy: [],
     headers: [
       { title: 'Actions', key: 'actions', sortable: false },
       {
@@ -163,12 +163,13 @@ export default {
     const store = searchResultStore()
 
     this.searchResult = store.searchResult
+    this.groupBy = [{key: 'name'}, {key: 'central_element'}]
 
     this.groupKeys = []
     for(const key of store.getKeys){
       this.groupKeys.push({
         key: key,
-        isChecked: false
+        isChecked: (key === "name" || key === "central_element")
       })
     }
   }
