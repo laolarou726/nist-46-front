@@ -129,8 +129,6 @@ export default {
       { title: 'Ligand Charge', align: 'end', key: 'ligand_charge' },
       { title: 'Metal Charge', align: 'end', key: 'metal_charge' },
       { title: 'Central Element', align: 'end', key: 'central_element' },
-      { title: 'Molecular Formula', align: 'end', key: 'molecular_formula' },
-      { title: 'Categories', align: 'end', key: 'categories' },
       { title: 'Ligand ID', align: 'end', key: 'ligand_id'},
       { title: 'Metal ID', align: 'end', key: 'metal_id'}
     ],
