@@ -42,7 +42,7 @@
               sm="3"
             >
               <v-checkbox
-                :label="key.key"
+                :label="key.name"
                 v-model="key.isChecked"
                 color="primary"
                 hide-details
@@ -128,6 +128,14 @@ import katex from "katex";
 import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
 import ProtonationDisplayUtil from "@/utils/ProtonationDisplayUtil";
 
+const filterKeyMapping = {
+  'name': 'Name',
+  'form': 'Protonation Level',
+  'central_element': 'Metal',
+  'metal_charge': 'Metal Charge',
+  'formula_string': 'Formula String'
+}
+
 export default {
   name: "SearchResult",
   setup: () => {
@@ -192,8 +200,11 @@ export default {
 
     this.groupKeys = []
     for(const key of store.getKeys){
+      if(filterKeyMapping[key] === undefined) continue
+
       this.groupKeys.push({
         key: key,
+        name: filterKeyMapping[key],
         isChecked: (key === "name" || key === "central_element")
       })
     }

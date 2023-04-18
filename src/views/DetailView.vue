@@ -53,7 +53,6 @@
                 </div>
               </v-card-item>
               <v-list class="text-left" density="compact" style="overflow-y: auto; max-height: 400px;">
-                <v-list-item>Name: {{this.selectedSearchResult?.name ?? '-'}}</v-list-item>
                 <v-list-item>
                   Expression:
                   <span v-if="!this.molecular_formula">-</span>
@@ -65,9 +64,8 @@
               </v-list>
             </v-card>
           </v-col>
-          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'">
+          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData">
             <v-card
-              v-if="this.molData"
               class="mx-auto fill-height"
               variant="outlined"
             >
@@ -83,8 +81,8 @@
               </v-card-item>
 
               <v-container>
-                <v-row no-gutters>
-                  <v-col>
+                <v-row no-gutters >
+                  <v-col >
                     <div id="mol2D" v-if="!isIn3DPreviewMode" :style="molViewStyle" class="disabled"></div>
                     <div id="mol3D" v-else :style="molViewStyle"></div>
                   </v-col>
@@ -155,7 +153,7 @@
               sm="3"
             >
               <v-checkbox
-                :label="key.key"
+                :label="key.name"
                 v-model="key.isChecked"
                 color="primary"
                 hide-details
@@ -227,6 +225,8 @@
         </template>
       </v-data-table>
 
+      <v-switch color="primary" label="Show Unbalanced data" @click="changeUnbalancedDataState"></v-switch>
+
       <v-card
         class="mx-auto mt-8"
         variant="outlined"
@@ -251,7 +251,6 @@
           ></v-list-item>
         </v-list>
       </v-card>
-
     </v-responsive>
   </v-container>
 </template>
@@ -290,6 +289,12 @@ const srcLinks = [
   "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/controls/OrbitControls.js"
 ]
 
+const unbalancedDataNameList = [
+  "[L]/[ML(s,amorphous)]",
+  "[L]/[ML(s,am)]",
+  "[OH][L]/[MOHL(s)]"
+]
+
 export default {
   name: "DetailView",
   setup: () => {
@@ -301,7 +306,6 @@ export default {
     items: [],
     categories: [],
     molecular_formula: null,
-    itemsPerPage: 5,
     element_with_charge: '',
     headers: [
       {
@@ -327,7 +331,9 @@ export default {
     isIn3DPreviewMode: false,
     groupKeys: [],
     groupBy: [],
-    itemsPerPage: 40
+    itemsPerPage: 40,
+    originalData: [],
+    showUnbalancedData: false
   }),
   methods: {
     async loadPreviewScripts(){
@@ -451,6 +457,16 @@ export default {
       }
 
       this.groupBy = temp
+    },
+    changeUnbalancedDataState(){
+      this.showUnbalancedData = !this.showUnbalancedData
+
+      if(this.showUnbalancedData){
+        this.constants = this.originalData
+      }
+      else{
+        this.constants = this.originalData.filter(d => unbalancedDataNameList.indexOf(d.expression_string) === -1)
+      }
     }
   },
   mounted() {
@@ -493,27 +509,44 @@ export default {
           this.noDataAvailable = true
         }
 
-        this.constants = result
+        const filteredData = []
+
+        for(let i = result.length - 1; i > 0; i--){
+          const constant = result[i]
+
+          if(unbalancedDataNameList.indexOf(constant.expression_string) === -1){
+            filteredData.push(constant)
+          }
+        }
+
+        this.originalData = result
+        this.constants = filteredData
+
         this.groupBy = [{key: 'expression_string'}, {key: 'constant_kind'}]
         this.groupKeys = [
           {
             key: 'expression_string',
+            name: 'Expression',
             isChecked: true
           },
           {
             key: 'constant_kind',
+            name: 'Constant Kind',
             isChecked: true
           },
           {
             key: 'ionic_strength',
+            name: 'Ionic Strength',
             isChecked: false
           },
           {
             key: 'value',
+            name: 'Value',
             isChecked: false
           },
           {
             key: 'temperature',
+            name: 'Temperature',
             isChecked: false
           }
         ]
