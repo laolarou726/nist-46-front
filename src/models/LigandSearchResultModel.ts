@@ -40,7 +40,7 @@ export class ProcessedLigandAdvanceSearchResultModel extends LigandSearchResultM
 
       if(raw.molecular_formula.charge !== 0){
         const symbol = raw.molecular_formula.charge < 0 ? '-' : '+'
-        molecularFormula = `(${result})<sup>${raw.molecular_formula.charge}${symbol}</sup>`
+        molecularFormula = `(${molecularFormula})<sup>${raw.molecular_formula.charge}${symbol}</sup>`
       }
 
       result.molecular_formula = molecularFormula;

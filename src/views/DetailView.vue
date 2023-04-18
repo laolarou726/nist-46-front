@@ -43,10 +43,10 @@
                     {{this.selectedSearchResult?.name ?? '-'}}
                   </div>
                   <div class="d-flex text-overline mb-1">
-                    <v-chip color="blue">
+                    <v-chip color="blue" v-if="this.selectedSearchResult?.form">
                       <div class="no-katex-html text-h6" v-html="getFormattedProtonationForm(this.selectedSearchResult?.form ?? '-')"></div>
                     </v-chip>
-                    <v-chip color="green" class="ml-3">
+                    <v-chip color="green" class="ml-3" v-if="this.selectedSearchResult?.formula_string">
                       <div class="no-katex-html text-h6" v-html="getFormattedMetalForm(this.selectedSearchResult?.formula_string ?? '-')"></div>
                     </v-chip>
                   </div>
@@ -103,6 +103,7 @@
       </v-container>
 
       <v-card
+        v-if="this.categories"
         class="mx-auto mt-8"
         variant="outlined"
       >
@@ -304,7 +305,7 @@ export default {
   },
   data: () => ({
     items: [],
-    categories: [],
+    categories: null,
     molecular_formula: null,
     element_with_charge: '',
     headers: [
@@ -438,12 +439,16 @@ export default {
       else
         await this.load2DMol()
     },
-    getFormattedMetalForm(form: string){
+    getFormattedMetalForm(form?: string){
+      if(!form || form === '-') return '-'
+
       const latexStr = MetalDisplayUtils.formatMetalFormulaString(form)
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
-    getFormattedProtonationForm(pro: string){
+    getFormattedProtonationForm(pro?: string){
+      if(!pro || pro === '-') return '-'
+
       const latexStr = ProtonationDisplayUtil.formatProtonationString(pro)
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
@@ -473,7 +478,7 @@ export default {
     const store = searchResultStore()
 
     this.selectedSearchResult = store.selectedSearchResult
-    this.categories = store.selectedSearchResult.categories?.split(',')
+    this.categories = store.selectedSearchResult.categories == '' ? null : store.selectedSearchResult.categories?.split(',')
     this.molecular_formula = store.selectedSearchResult.molecular_formula
     this.element_with_charge = `${store.selectedSearchResult.central_element}<sup>${ElementDisplayUtils.formatElementCharge(store.selectedSearchResult.metal_charge)}</sup>`
     this.items = []
@@ -496,6 +501,9 @@ export default {
           }
 
           this.categories = Array.from(new Set(resultCategories))
+
+          if(this.categories.length === 0)
+            this.categories = null
         }
 
         if(!this.molecular_formula){

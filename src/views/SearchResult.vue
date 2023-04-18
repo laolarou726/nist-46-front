@@ -120,7 +120,7 @@
 }
 </style>
 
-<script>
+<script lang="ts">
 import {searchResultStore} from "@/stores/searchResultStore";
 import {useMeta} from "vue-meta";
 import ElementDisplayUtils from "@/utils/ElementDisplayUtils";
@@ -181,12 +181,16 @@ export default {
 
       this.$router.push('/detail-view')
     },
-    getFormattedMetalForm(form){
+    getFormattedMetalForm(form?: string){
+      if(!form) return '-'
+
       const latexStr = MetalDisplayUtils.formatMetalFormulaString(form)
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
-    getFormattedProtonationForm(pro){
+    getFormattedProtonationForm(pro?: string){
+      if(!pro) return '-'
+
       const latexStr = ProtonationDisplayUtil.formatProtonationString(pro)
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
