@@ -98,6 +98,15 @@
             <template v-slot:[`item.molecular_formula`]="{ item }">
               <div v-html="item.raw.molecular_formula"></div>
             </template>
+            <template v-slot:[`item.form`]="{ item }">
+              <div class="no-katex-html" v-html="getFormattedProtonationForm(item.raw.form)"></div>
+            </template>
+            <template v-slot:[`item.metal_charge`]="{ item }">
+              {{ (item.raw.metal_charge > 0 ? `+${item.raw.metal_charge}` : item.raw.metal_charge) }}
+            </template>
+            <template v-slot:[`item.formula_string`]="{ item }">
+              <div class="no-katex-html" v-html="getFormattedMetalForm(item.raw.formula_string)"></div>
+            </template>
           </v-data-table>
         </v-col>
       </v-row>
@@ -105,9 +114,19 @@
   </v-container>
 </template>
 
+<style>
+.no-katex-html .katex-html{
+  display: none;
+}
+</style>
+
 <script>
 import {searchResultStore} from "@/stores/searchResultStore";
 import {useMeta} from "vue-meta";
+import ElementDisplayUtils from "@/utils/ElementDisplayUtils";
+import katex from "katex";
+import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
+import ProtonationDisplayUtil from "@/utils/ProtonationDisplayUtil";
 
 export default {
   name: "SearchResult",
@@ -126,11 +145,9 @@ export default {
         align: 'start',
         key: 'name',
       },
-      { title: 'Ligand Charge', align: 'end', key: 'ligand_charge' },
+      { title: 'Protonation Level', align: 'end', key: 'form' },
       { title: 'Metal Charge', align: 'end', key: 'metal_charge' },
-      { title: 'Central Element', align: 'end', key: 'central_element' },
-      { title: 'Ligand ID', align: 'end', key: 'ligand_id'},
-      { title: 'Metal ID', align: 'end', key: 'metal_id'}
+      { title: 'Formula String', align: 'end', key: 'formula_string'}
     ],
     searchResult: [],
     groupKeys: []
@@ -155,6 +172,16 @@ export default {
       store.selectedSearchResult = item
 
       this.$router.push('/detail-view')
+    },
+    getFormattedMetalForm(form){
+      const latexStr = MetalDisplayUtils.formatMetalFormulaString(form)
+
+      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
+    },
+    getFormattedProtonationForm(pro){
+      const latexStr = ProtonationDisplayUtil.formatProtonationString(pro)
+
+      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     }
   },
   mounted() {

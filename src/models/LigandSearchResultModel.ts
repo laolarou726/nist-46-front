@@ -7,6 +7,9 @@ export class LigandSearchResultModel {
   central_element!: string;
   ligand_id!: number;
   metal_id!: number;
+  form!: string;
+  uncertainty_id!: number;
+  formula_string!: string;
 }
 
 export class LigandAdvanceSearchResultModel extends LigandSearchResultModel {
