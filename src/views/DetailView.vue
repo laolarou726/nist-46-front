@@ -174,6 +174,7 @@
               <VBtn
                 size="small"
                 variant="text"
+                :class="`ml-${item.depth * 5}`"
                 :icon="isGroupOpen(item) ? '$expand' : '$next'"
                 @click="toggleGroup(item)"
               ></VBtn>
