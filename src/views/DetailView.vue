@@ -450,7 +450,7 @@ export default {
         'Entropy': '\\frac{J}{mol \\Kappa}',
         '-': ''
       }
-      const latexStr = `${val.toFixed(4)}${signDic[direction ?? '-']}${uncertainty ?? ''}\\space${unitDic[kind ?? '-']}`
+      const latexStr = `${val.toFixed(2)}${signDic[direction ?? '-']}${uncertainty ?? ''}\\space${unitDic[kind ?? '-']}`
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
