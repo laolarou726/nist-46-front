@@ -62,6 +62,19 @@
                 <v-list-item>Ligand ID: {{this.selectedSearchResult?.ligand_id ?? '-'}}</v-list-item>
                 <v-list-item>Metal ID: {{this.selectedSearchResult?.metal_id ?? '-'}}</v-list-item>
               </v-list>
+              <div class="text-left">
+                <v-chip
+                  v-for="category in this.categories"
+                  :key="category"
+                  class="ma-2"
+                  color="pink"
+                  label
+                  text-color="white"
+                >
+                  <v-icon start icon="mdi-label"></v-icon>
+                  {{category}}
+                </v-chip>
+              </div>
             </v-card>
           </v-col>
           <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData">
@@ -101,34 +114,6 @@
           </v-col>
         </v-row>
       </v-container>
-
-      <v-card
-        v-if="this.categories"
-        class="mx-auto mt-8"
-        variant="outlined"
-      >
-        <v-card-item>
-          <div>
-            <div class="d-flex text-h6 mb-1">
-              TAGS
-            </div>
-          </div>
-        </v-card-item>
-
-        <div class="text-left">
-          <v-chip
-            v-for="category in this.categories"
-            :key="category"
-            class="ma-2"
-            color="pink"
-            label
-            text-color="white"
-          >
-            <v-icon start icon="mdi-label"></v-icon>
-            {{category}}
-          </v-chip>
-        </div>
-      </v-card>
 
       <v-alert
         v-if="noDataAvailable"
