@@ -11,8 +11,8 @@ export default class ElementDisplayUtils{
 
   public static formatConstantKindLatex(kind: string){
     if(kind === "Equilibrium") return "\\Kappa"
-    if(kind === "Enthalpy") return "\\Delta{H} \\space (KJ/mol)"
-    if(kind === "Entropy") return "\\Delta{S} \\space (J/K)"
+    if(kind === "Enthalpy") return "\\Delta{H}"
+    if(kind === "Entropy") return "\\Delta{S}"
 
     return kind
   }

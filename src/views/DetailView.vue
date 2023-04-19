@@ -75,7 +75,7 @@
                     PREVIEW
                   </div>
                   <div class="d-flex text-h6 mb-1">
-                    Mol Preview (2D / 3D)
+                    Mol Preview ({{this.isIn3DPreviewMode ? '3D' : '2D'}})
                   </div>
                 </div>
               </v-card-item>
@@ -93,7 +93,7 @@
                 <v-btn variant="outlined" prepend-icon="mdi-cube-scan" @click="loadPreview">
                   Load
                 </v-btn>
-                <v-btn variant="outlined" :prepend-icon="(this.isIn3DPreviewMode ? 'mdi-video-3d-off' : 'mdi-video-3d')" @click="switchPreviewMode">
+                <v-btn variant="outlined" :prepend-icon="(this.isIn3DPreviewMode ? 'mdi-vector-rectangle' : 'mdi-cube')" @click="switchPreviewMode">
                   Switch To {{this.isIn3DPreviewMode ? '2D' : '3D'}} Preview
                 </v-btn>
               </v-card-actions>
@@ -109,7 +109,7 @@
       >
         <v-card-item>
           <div>
-            <div class="d-flex text-overline mb-1">
+            <div class="d-flex text-h6 mb-1">
               TAGS
             </div>
           </div>
@@ -180,6 +180,7 @@
         :headers="headers"
         :items="constants"
         :items-per-page="itemsPerPage"
+        multi-sort
         class="mt-8 elevation-1"
       >
         <template v-slot:group-header="{ item, columns, toggleGroup, isGroupOpen }">
@@ -219,14 +220,18 @@
           <div class="no-katex-html" v-html="convertExpressionToLatex(item.raw.expression_string)"></div>
         </template>
         <template v-slot:[`item.value`]="{ item }">
-          <div class="no-katex-html" v-html="convertValueWithUncertaintyToLatex(item.raw.value, item.raw.magnitude)"></div>
-        </template>
-        <template v-slot:[`item.direction`]="{ item }">
-          {{item.raw.direction ?? '-'}}
+          <tr>
+            <td style="min-width: 150px;">
+              <div class="no-katex-html pl-3 pr-3" v-html="convertValueWithUncertaintyToLatex1(item.raw.value, item.raw.magnitude, item.raw.direction, item.raw.constant_kind)"></div>
+            </td>
+            <td v-if="item.raw.constant_kind !== 'Equilibrium'">
+              <div class="no-katex-html pl-3 pr-3" v-html="convertValueWithUncertaintyToLatex2(item.raw.value, item.raw.magnitude, item.raw.direction, item.raw.constant_kind)"></div>
+            </td>
+          </tr>
         </template>
       </v-data-table>
 
-      <v-switch color="primary" label="Show Unbalanced data" @click="changeUnbalancedDataState"></v-switch>
+      <v-switch color="primary" class="ml-8" label="Show Unbalanced data" @click="changeUnbalancedDataState"></v-switch>
 
       <v-card
         class="mx-auto mt-8"
@@ -316,10 +321,9 @@ export default {
       },
       { title: 'Constant Kind', align: 'end', key: 'constant_kind' },
       { title: 'Temp (°C)', align: 'end', key: 'temperature' },
-      { title: 'Ionic Strength (M)', align: 'end', key: 'ionic_strength' },
-      { title: 'Value', align: 'end', key: 'value' },
-      {title: 'Uncertainty Direction', key: 'direction'},
-      { title: '', key: 'data-table-expand' },
+      { title: 'Ionic Strength (M)', align: 'center', key: 'ionic_strength' },
+      { title: 'Value', align: 'start', key: 'value' },
+      { title: 'FootNotes', key: 'data-table-expand' },
     ],
     constants: [],
     selectedSearchResult: new ProcessedLigandAdvanceSearchResultModel(),
@@ -421,11 +425,47 @@ export default {
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
-    convertValueWithUncertaintyToLatex(val?: number, uncertainty?: number){
+    convertValueWithUncertaintyToLatex1(val?: number, uncertainty?: number, direction?: string, kind?: string){
       if(!val) return '-'
-      if(!uncertainty) return katex.renderToString(val.toString(), { displayMode: true, throwOnError: false })
 
-      const latexStr = `${val}\\pm${uncertainty}`
+      if(!kind) return katex.renderToString(val.toString(), { displayMode: true, throwOnError: false })
+
+      const signDic: Record<string, string> = {
+        'Positive': '+',
+        'Negative': '-',
+        'Both': '\\pm',
+        '-': ''
+      }
+      const unitDic: Record<string, string> = {
+        'Enthalpy': '\\frac{kCal}{mol}',
+        'Entropy': '\\frac{Cal}{mol \\Kappa}',
+        'Equilibrium': '',
+        '-': ''
+      }
+      const latexStr = `${val}${signDic[direction ?? '-']}${uncertainty ?? ''}\\space${unitDic[kind ?? '-']}`
+
+      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
+    },
+    convertValueWithUncertaintyToLatex2(val?: number, uncertainty?: number, direction?: string, kind?: string){
+      if(!val) return '-'
+
+      if(kind && kind !== "Equilibrium")
+        val *= 4.184
+
+      if(!kind) return katex.renderToString(val.toString(), { displayMode: true, throwOnError: false })
+
+      const signDic: Record<string, string> = {
+        'Positive': '+',
+        'Negative': '-',
+        'Both': '\\pm',
+        '-': ''
+      }
+      const unitDic: Record<string, string> = {
+        'Enthalpy': '\\frac{kJ}{mol}',
+        'Entropy': '\\frac{J}{mol \\Kappa}',
+        '-': ''
+      }
+      const latexStr = `${val.toFixed(4)}${signDic[direction ?? '-']}${uncertainty ?? ''}\\space${unitDic[kind ?? '-']}`
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
@@ -436,8 +476,10 @@ export default {
     async loadPreview(){
       if(this.isIn3DPreviewMode)
         await this.load3DMol()
-      else
+      else{
         await this.load2DMol()
+        await this.load2DMol()
+      }
     },
     getFormattedMetalForm(form?: string){
       if(!form || form === '-') return '-'
@@ -568,6 +610,8 @@ export default {
         if(!result) return
 
         this.molData = result
+        await this.load2DMol();
+        await this.load2DMol();
 
         await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
 
