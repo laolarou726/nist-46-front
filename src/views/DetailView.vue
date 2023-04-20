@@ -102,7 +102,7 @@
                 </v-row>
               </v-container>
 
-              <v-card-actions :class="(this.molLoaded ? '' : 'fill-height')">
+              <v-card-actions>
                 <v-btn variant="outlined" prepend-icon="mdi-cube-scan" @click="loadPreview">
                   Load
                 </v-btn>
