@@ -29,7 +29,7 @@
 
       <v-container class="pa-0 mt-8">
         <v-row no-gutters>
-          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'" sm="12" :lg="(this.molData ? 6 : 12)">
+          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'" xs="12" :lg="(this.molData ? 6 : 12)">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
@@ -77,7 +77,7 @@
               </div>
             </v-card>
           </v-col>
-          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData" sm="12" lg="6">
+          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData" xs="12" lg="6">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
