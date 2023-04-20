@@ -122,14 +122,17 @@
 </style>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
 import {searchResultStore} from "@/stores/searchResultStore";
 import {useMeta} from "vue-meta";
-import ElementDisplayUtils from "@/utils/ElementDisplayUtils";
 import katex from "katex";
 import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
 import ProtonationDisplayUtil from "@/utils/ProtonationDisplayUtil";
+import GroupByModel from "@/models/Group/GroupByModel";
+import GroupKeyModel from "@/models/Group/GroupKeyModel";
+import {LigandSearchResultModel} from "@/models/LigandSearchResultModel";
 
-const filterKeyMapping = {
+const filterKeyMapping: Record<string, string> = {
   'name': 'Name',
   'form': 'Protonation Level',
   'central_element': 'Metal',
@@ -137,7 +140,7 @@ const filterKeyMapping = {
   'formula_string': 'Formula String'
 }
 
-export default {
+export default defineComponent({
   name: "SearchResult",
   setup: () => {
     useMeta({
@@ -146,7 +149,6 @@ export default {
   },
   data: () => ({
     itemsPerPage: 50,
-    groupBy: [],
     headers: [
       { title: 'Actions', key: 'actions', sortable: false },
       {
@@ -158,8 +160,9 @@ export default {
       { title: 'Metal Charge', align: 'end', key: 'metal_charge' },
       { title: 'Formula String', align: 'end', key: 'formula_string'}
     ],
-    searchResult: [],
-    groupKeys: []
+    searchResult: [] as LigandSearchResultModel[],
+    groupBy: [] as GroupByModel[],
+    groupKeys: [] as GroupKeyModel[]
   }),
   methods: {
     returnToSearchPage(){
@@ -175,7 +178,7 @@ export default {
 
       this.groupBy = temp
     },
-    goToDetailPage(item){
+    goToDetailPage(item: LigandSearchResultModel){
       const store = searchResultStore()
 
       store.selectedSearchResult = item
@@ -214,5 +217,5 @@ export default {
       })
     }
   }
-}
+})
 </script>

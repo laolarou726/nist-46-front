@@ -11,12 +11,15 @@
     @input="onLigandsUpdate"
     @click:append-inner="searchLigands"
     v-on:keyup.enter="searchLigands"
-    :loading="isLoading"
+    :loading="isLoading ?? false"
   ></v-text-field>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+
+import { defineComponent } from 'vue'
+
+export default defineComponent({
   name: "SimpleSearchForm",
   props: {
     isLoading: {
@@ -39,7 +42,8 @@ export default {
       this.$emit('update:ligands', this.ligandsValue);
     }
   }
-}
+})
+
 </script>
 
 <style scoped>

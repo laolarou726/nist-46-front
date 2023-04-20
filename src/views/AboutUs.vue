@@ -69,7 +69,7 @@
   </v-container>
 </template>
 
-<script>
+<script lang="ts">
 import { toSvg } from "jdenticon";
 import {useMeta} from "vue-meta";
 

@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-
+import { defineComponent } from 'vue'
 import {useTheme} from "vuetify";
 import SimpleSearchForm from "@/components/Search/SimpleSearchForm.vue";
 import {SearchRequestModel} from "@/models/AdvanceSearchRequestModel";
@@ -53,7 +53,7 @@ import {advanceSearch, simpleSearch} from "@/axiosClient";
 import {searchResultStore} from "@/stores/searchResultStore";
 import {useMeta} from "vue-meta";
 
-export default {
+export default defineComponent({
   name: 'home',
   setup: () => {
     useMeta({
@@ -66,12 +66,12 @@ export default {
     isLoading: false,
     snackbar: false,
     text: 'Failed to fetch search result from the server, internal error maybe happened. Please contact site administrator!',
-    ligands: null,
-    metals: null,
-    categories: null,
-    ligandCharges: null,
-    metalCharges: null,
-    chemicals: null
+    ligands: '',
+    metals: '',
+    categories: '',
+    ligandCharges: '',
+    metalCharges: '',
+    chemicals: ''
   }),
   computed: {
     nistIconStyle(): string{
@@ -125,6 +125,6 @@ export default {
       }
     }
   }
-}
+})
 
 </script>

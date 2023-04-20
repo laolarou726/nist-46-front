@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
 import {
+  LigandSearchResultModel,
   ProcessedLigandAdvanceSearchResultModel
 } from "@/models/LigandSearchResultModel";
 
 export const searchResultStore = defineStore('searchResult', {
   state: () => ({
-    searchResult: [] as ProcessedLigandAdvanceSearchResultModel[],
-    selectedSearchResult: ProcessedLigandAdvanceSearchResultModel
+    searchResult: [] as LigandSearchResultModel[],
+    selectedSearchResult: new ProcessedLigandAdvanceSearchResultModel() as LigandSearchResultModel
   }),
   getters: {
     getKeys(): string[]{

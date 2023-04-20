@@ -22,7 +22,7 @@
           label="Categories"
           prepend-icon="mdi-list-box-outline"
           variant="solo"
-          :loading="isLoading"
+          :loading="isLoading ?? false"
           @input="onCategoriesUpdate"
           v-model:model-value="categoriesValue"
         ></v-text-field>
@@ -36,7 +36,7 @@
           label="Ligands"
           prepend-icon="mdi-chemical-weapon"
           variant="solo"
-          :loading="isLoading"
+          :loading="isLoading ?? false"
           @input="onLigandsUpdate"
           v-model:model-value="ligandsValue"
         ></v-text-field>
@@ -50,7 +50,7 @@
           label="Chemicals"
           prepend-icon="mdi-bottle-tonic-skull-outline"
           variant="solo"
-          :loading="isLoading"
+          :loading="isLoading ?? false"
           @input="onChemicalsUpdate"
           v-model:model-value="chemicalsValue"
         ></v-text-field>
@@ -64,7 +64,7 @@
           label="Metals"
           prepend-icon="mdi-soldering-iron"
           variant="solo"
-          :loading="isLoading"
+          :loading="isLoading ?? false"
           @input="onMetalsUpdate"
           v-model:model-value="metalsValue"
         ></v-text-field>
@@ -78,7 +78,7 @@
           label="Metal Charge"
           prepend-icon="mdi-flash"
           variant="solo"
-          :loading="isLoading"
+          :loading="isLoading ?? false"
           @input="onMetalChargesUpdate"
           v-model:model-value="metalChargesValue"
         ></v-text-field>
@@ -92,7 +92,7 @@
           label="Ligand Charge"
           prepend-icon="mdi-lightning-bolt-outline"
           variant="solo"
-          :loading="isLoading"
+          :loading="isLoading ?? false"
           @input="onLigandChargesUpdate"
           v-model:model-value="ligandChargesValue"
         ></v-text-field>
@@ -103,8 +103,10 @@
   </v-container>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export default defineComponent({
   name: "AdvanceSearchForm",
   props: {
     isLoading: {
@@ -167,5 +169,5 @@ export default {
       this.$emit('update:chemicals', this.chemicalsValue);
     }
   }
-}
+})
 </script>

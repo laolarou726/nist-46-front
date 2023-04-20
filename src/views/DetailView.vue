@@ -237,7 +237,7 @@
         <v-list lines="one" class="text-left" style="overflow-y: auto; max-height: 400px;">
           <v-list-item
             v-for="ref in references"
-            :key="ref.title"
+            :key="ref.litId"
             :title="ref.reference"
             :subtitle="ref.code"
           ></v-list-item>
@@ -258,6 +258,7 @@
 </style>
 
 <script lang="ts">
+import { defineComponent } from 'vue'
 import {searchResultStore} from "@/stores/searchResultStore";
 import {
   LigandAdvanceSearchResultModel,
@@ -272,6 +273,12 @@ import ElementDisplayUtils from "@/utils/ElementDisplayUtils";
 import katex from "katex"
 import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
 import ProtonationDisplayUtil from "@/utils/ProtonationDisplayUtil";
+import { ConstantResultModel } from '@/models/ConstantResultModel';
+import { MolecularFormula } from '@/models/MolecularFormula';
+import { MolDataRawResultModel } from '@/models/MolDataResultModel';
+import {ReferenceFetchResultModel} from "@/models/ReferenceFetchResultModel";
+import GroupByModel from "@/models/Group/GroupByModel";
+import GroupKeyModel from "@/models/Group/GroupKeyModel";
 
 const srcLinks = [
   "https://cdn.jsdelivr.net/gh/BoboRett/MolViewer@v0.52/molViewer.js",
@@ -287,45 +294,46 @@ const unbalancedDataNameList = [
   "[OH][L]/[MOHL(s)]"
 ]
 
-export default {
+export default defineComponent({
   name: "DetailView",
   setup: () => {
     useMeta({
       title: 'Detail'
     })
   },
-  data: () => ({
-    items: [],
-    categories: null,
-    molecular_formula: null,
-    element_with_charge: '',
-    headers: [
-      {
-        title: 'Expression',
-        align: 'start',
-        key: 'expression_string',
-      },
-      { title: 'Constant Kind', align: 'end', key: 'constant_kind' },
-      { title: 'Temp (°C)', align: 'end', key: 'temperature' },
-      { title: 'Ionic Strength (M)', align: 'center', key: 'ionic_strength' },
-      { title: 'Value', align: 'start', key: 'value' },
-      { title: 'FootNotes', key: 'data-table-expand' },
-    ],
-    constants: [],
-    selectedSearchResult: new ProcessedLigandAdvanceSearchResultModel(),
-    isLoading: true,
-    molLoaded: false,
-    molData: null,
-    references: null,
-    smileStr: null,
-    noDataAvailable: false,
-    isIn3DPreviewMode: false,
-    groupKeys: [],
-    groupBy: [],
-    itemsPerPage: 40,
-    originalData: [],
-    showUnbalancedData: false
-  }),
+  data() {
+    return {
+      categories: null as string[] | null,
+      molecular_formula: null as string | null,
+      element_with_charge: '',
+      headers: [
+        {
+          title: 'Expression',
+          align: 'start',
+          key: 'expression_string',
+        },
+        { title: 'Constant Kind', align: 'end', key: 'constant_kind' },
+        { title: 'Temp (°C)', align: 'end', key: 'temperature' },
+        { title: 'Ionic Strength (M)', align: 'center', key: 'ionic_strength' },
+        { title: 'Value', align: 'start', key: 'value' },
+        { title: 'FootNotes', key: 'data-table-expand' },
+      ],
+      constants: [] as ConstantResultModel[],
+      selectedSearchResult: null as ProcessedLigandAdvanceSearchResultModel | null,
+      isLoading: true,
+      molLoaded: false,
+      molData: null as MolDataRawResultModel | null,
+      references: [] as ReferenceFetchResultModel[],
+      smileStr: null as string | null,
+      noDataAvailable: false,
+      isIn3DPreviewMode: false,
+      groupKeys: [] as GroupKeyModel[],
+      groupBy: [] as GroupByModel[],
+      itemsPerPage: 40,
+      originalData: [] as ConstantResultModel[],
+      showUnbalancedData: false
+    }
+  },
   methods: {
     async loadPreviewScripts(){
       for(const src of srcLinks){
@@ -340,7 +348,9 @@ export default {
     async getSmileCode(): Promise<string>{
       await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
 
+      // @ts-ignore
       const RDKit = await window.initRDKitModule()
+      // @ts-ignore
       const smiles = RDKit.get_mol(this.molData?.drawCode).get_smiles()
 
       return smiles
@@ -349,13 +359,19 @@ export default {
       await this.loadPreviewScripts()
 
       const smiles = await this.getSmileCode()
+
+      // @ts-ignore
+      // eslint-disable-next-line no-undef
       const molecule2D = new MolViewer.Molecule()
       molecule2D.get2DFromSMILE(smiles);
 
       const mol2DElement = document.getElementById( "mol2D" );
 
+      // @ts-ignore
       mol2DElement.innerHTML = ''
 
+      // @ts-ignore
+      // eslint-disable-next-line no-undef
       const mol2D = new MolViewer.Mol2D(null, mol2DElement);
 
       mol2D.init();
@@ -369,13 +385,17 @@ export default {
       await this.loadPreviewScripts()
 
       const smiles = await this.getSmileCode()
+      // @ts-ignore
+      // eslint-disable-next-line no-undef
       const molecule3D = new MolViewer.Molecule()
       molecule3D.get3DFromSMILE(smiles);
 
       const mol3DElement = document.getElementById( "mol3D" );
 
+      // @ts-ignore
       mol3DElement.innerHTML = ''
 
+      // @ts-ignore
       // eslint-disable-next-line no-undef
       const mol3D = new MolViewer.Mol3D(null, mol3DElement );
 
@@ -504,7 +524,7 @@ export default {
         this.constants = this.originalData
       }
       else{
-        this.constants = this.originalData.filter(d => unbalancedDataNameList.indexOf(d.expression_string) === -1)
+        this.constants = this.originalData.filter(d => d.expression_string !== undefined).filter(d => unbalancedDataNameList.indexOf(d.expression_string!) === -1)
       }
     }
   },
@@ -514,14 +534,7 @@ export default {
     this.selectedSearchResult = store.selectedSearchResult
     this.categories = store.selectedSearchResult.categories == '' ? null : store.selectedSearchResult.categories?.split(',')
     this.molecular_formula = store.selectedSearchResult.molecular_formula
-    this.element_with_charge = `${store.selectedSearchResult.central_element}<sup>${ElementDisplayUtils.formatElementCharge(store.selectedSearchResult.metal_charge)}</sup>`
-    this.items = []
-
-    for(const key of Object.keys(store.selectedSearchResult)){
-      if(!store.selectedSearchResult[key]) continue
-
-      this.items.push(`${key}: ${store.selectedSearchResult[key]}`)
-    }
+    this.element_with_charge = `${store.selectedSearchResult.central_element}<sup>${ElementDisplayUtils.formatElementCharge(+store.selectedSearchResult.metal_charge)}</sup>`
 
     this.isLoading = true
     getConstants(store.selectedSearchResult.ligand_id, store.selectedSearchResult.metal_id)
@@ -529,9 +542,9 @@ export default {
         if(!result) return
 
         if(!this.categories || this.categories.length === 0){
-          let resultCategories = []
+          let resultCategories: string[] = []
           for(const constant of result){
-            resultCategories = resultCategories.concat(constant.categories)
+            resultCategories = resultCategories.concat(constant.categories ?? [])
           }
 
           this.categories = Array.from(new Set(resultCategories))
@@ -542,7 +555,7 @@ export default {
 
         if(!this.molecular_formula){
           const temp = new LigandAdvanceSearchResultModel();
-          temp.molecular_formula = result[0].molecular_formula
+          temp.molecular_formula = result[0].molecular_formula ?? new MolecularFormula()
 
           this.molecular_formula = ProcessedLigandAdvanceSearchResultModel.process(temp).molecular_formula
         }
@@ -556,6 +569,7 @@ export default {
         for(let i = result.length - 1; i > 0; i--){
           const constant = result[i]
 
+          if(constant.expression_string === undefined) continue
           if(unbalancedDataNameList.indexOf(constant.expression_string) === -1){
             filteredData.push(constant)
           }
@@ -627,7 +641,7 @@ export default {
       return `height: 400px; background: ${background}; ${this.molLoaded ? '' : 'display: none;'}`
     }
   }
-}
+})
 </script>
 
 <style scoped>
