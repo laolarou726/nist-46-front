@@ -20,6 +20,7 @@
 
       <div class="text-caption text-left mt-8" v-if="this.failedResources.length !== 0">
         <v-alert
+          class="mt-5"
           v-for="failed in this.failedResources"
           v-bind:key="failed.resourceName"
           density="compact"
@@ -33,7 +34,7 @@
         <v-divider class="mt-2 mb-2"></v-divider>
         <div class="d-flex">
           <v-spacer></v-spacer>
-          <v-btn color="info" prepend-icon="mdi-refresh">Retry All</v-btn>
+          <v-btn color="info" prepend-icon="mdi-refresh" @click="this.retryFailed">Retry All</v-btn>
         </div>
       </div>
 
