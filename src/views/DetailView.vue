@@ -435,8 +435,14 @@ export default {
     convertValueWithUncertaintyToLatex2(val?: number, uncertainty?: number, direction?: string, kind?: string){
       if(!val) return '-'
 
-      if(kind && kind !== "Equilibrium")
+      if(kind && kind !== "Equilibrium"){
         val *= 4.184
+
+        if(uncertainty){
+          uncertainty *= 4.184
+          uncertainty.toFixed(0)
+        }
+      }
 
       if(!kind) return katex.renderToString(val.toString(), { displayMode: true, throwOnError: false })
 
@@ -451,7 +457,7 @@ export default {
         'Entropy': '\\frac{J}{mol \\Kappa}',
         '-': ''
       }
-      const latexStr = `${val.toFixed(2)}${signDic[direction ?? '-']}${uncertainty ?? ''}\\space${unitDic[kind ?? '-']}`
+      const latexStr = `${val.toFixed(1)}${signDic[direction ?? '-']}${(uncertainty?.toFixed(0)) ?? ''}\\space${unitDic[kind ?? '-']}`
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
