@@ -18,6 +18,25 @@
         color="yellow-darken-2"
       ></v-progress-linear>
 
+      <div class="text-caption text-left mt-8" v-if="this.failedResources.length !== 0">
+        <v-alert
+          v-for="failed in this.failedResources"
+          v-bind:key="failed.resourceName"
+          density="compact"
+          type="error"
+          closable
+          close-label="Close Alert"
+          :title="`Failed To Request: ${failed.resourceName}`"
+        >
+          This might happen when there are too much traffic for the backend server. You can click [Retry All] button to reload. Detail: {{failed.detail}}
+        </v-alert>
+        <v-divider class="mt-2 mb-2"></v-divider>
+        <div class="d-flex">
+          <v-spacer></v-spacer>
+          <v-btn color="info" prepend-icon="mdi-refresh">Retry All</v-btn>
+        </div>
+      </div>
+
       <div class="d-flex text-caption text-left mt-8" v-if="this.molData">
         <v-alert
           type="info"
@@ -294,6 +313,12 @@ const unbalancedDataNameList = [
   "[OH][L]/[MOHL(s)]"
 ]
 
+declare interface RequestFailedModel{
+  resourceName: string;
+  detail: string;
+  action: () => void;
+}
+
 export default defineComponent({
   name: "DetailView",
   setup: () => {
@@ -331,7 +356,8 @@ export default defineComponent({
       groupBy: [] as GroupByModel[],
       itemsPerPage: 40,
       originalData: [] as ConstantResultModel[],
-      showUnbalancedData: false
+      showUnbalancedData: false,
+      failedResources: [] as RequestFailedModel[]
     }
   },
   methods: {
@@ -526,115 +552,149 @@ export default defineComponent({
       else{
         this.constants = this.originalData.filter(d => d.expression_string !== undefined).filter(d => unbalancedDataNameList.indexOf(d.expression_string!) === -1)
       }
+    },
+    retryFailed(){
+      for(const fail of this.failedResources)
+        fail.action()
+
+      this.failedResources = []
+    },
+    loadConstants(){
+      const store = searchResultStore()
+
+      getConstants(store.selectedSearchResult.ligand_id, store.selectedSearchResult.metal_id)
+        .then(result => {
+          if(!result) return
+
+          if(!this.categories || this.categories.length === 0){
+            let resultCategories: string[] = []
+            for(const constant of result){
+              resultCategories = resultCategories.concat(constant.categories ?? [])
+            }
+
+            this.categories = Array.from(new Set(resultCategories))
+
+            if(this.categories.length === 0)
+              this.categories = null
+          }
+
+          if(!this.molecular_formula){
+            const temp = new LigandAdvanceSearchResultModel();
+            temp.molecular_formula = result[0].molecular_formula ?? new MolecularFormula()
+
+            this.molecular_formula = ProcessedLigandAdvanceSearchResultModel.process(temp).molecular_formula
+          }
+
+          if(result.length === 1 && result[0].expression_string === "*"){
+            this.noDataAvailable = true
+          }
+
+          const filteredData = []
+
+          for(let i = result.length - 1; i > 0; i--){
+            const constant = result[i]
+
+            if(constant.expression_string === undefined) continue
+            if(unbalancedDataNameList.indexOf(constant.expression_string) === -1){
+              filteredData.push(constant)
+            }
+          }
+
+          this.originalData = result
+          this.constants = filteredData
+
+          this.groupBy = [{key: 'expression_string'}, {key: 'constant_kind'}]
+          this.groupKeys = [
+            {
+              key: 'expression_string',
+              name: 'Expression',
+              isChecked: true
+            },
+            {
+              key: 'constant_kind',
+              name: 'Constant Kind',
+              isChecked: true
+            },
+            {
+              key: 'ionic_strength',
+              name: 'Ionic Strength',
+              isChecked: false
+            },
+            {
+              key: 'value',
+              name: 'Value',
+              isChecked: false
+            },
+            {
+              key: 'temperature',
+              name: 'Temperature',
+              isChecked: false
+            }
+          ]
+        })
+        .catch(err => {
+          this.failedResources.push({
+            resourceName: 'MolData',
+            detail: err,
+            action: () => this.loadConstants()
+          })
+        })
+    },
+    loadMolData(){
+      getMolData(this.selectedSearchResult.ligand_id)
+        .then(async result => {
+          if(!result) return
+
+          this.molData = result
+          await this.load2DMol();
+          await this.load2DMol();
+
+          await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
+
+          const smiles = await this.getSmileCode()
+
+          this.smileStr = smiles
+        })
+        .catch(err => {
+          this.failedResources.push({
+            resourceName: 'MolData',
+            detail: err,
+            action: () => this.loadMolData()
+          })
+        })
+        .finally(() => {
+          this.isLoading = false
+        })
+    },
+    loadReferences(){
+      getReferences(this.selectedSearchResult.ligand_id)
+        .then(result => {
+          if(!result) return
+
+          this.references = result
+        })
+        .catch(err => {
+          this.failedResources.push({
+            resourceName: 'MolData',
+            detail: err,
+            action: () => this.loadReferences()
+          })
+        })
     }
   },
   mounted() {
     const store = searchResultStore()
 
     this.selectedSearchResult = store.selectedSearchResult
-    this.categories = store.selectedSearchResult.categories == '' ? null : store.selectedSearchResult.categories?.split(',')
+    this.categories = store.selectedSearchResult.categories == '' ? null : store.selectedSearchResult.categories?.split(',') ?? null
     this.molecular_formula = store.selectedSearchResult.molecular_formula
     this.element_with_charge = `${store.selectedSearchResult.central_element}<sup>${ElementDisplayUtils.formatElementCharge(+store.selectedSearchResult.metal_charge)}</sup>`
 
     this.isLoading = true
-    getConstants(store.selectedSearchResult.ligand_id, store.selectedSearchResult.metal_id)
-      .then(result => {
-        if(!result) return
 
-        if(!this.categories || this.categories.length === 0){
-          let resultCategories: string[] = []
-          for(const constant of result){
-            resultCategories = resultCategories.concat(constant.categories ?? [])
-          }
-
-          this.categories = Array.from(new Set(resultCategories))
-
-          if(this.categories.length === 0)
-            this.categories = null
-        }
-
-        if(!this.molecular_formula){
-          const temp = new LigandAdvanceSearchResultModel();
-          temp.molecular_formula = result[0].molecular_formula ?? new MolecularFormula()
-
-          this.molecular_formula = ProcessedLigandAdvanceSearchResultModel.process(temp).molecular_formula
-        }
-
-        if(result.length === 1 && result[0].expression_string === "*"){
-          this.noDataAvailable = true
-        }
-
-        const filteredData = []
-
-        for(let i = result.length - 1; i > 0; i--){
-          const constant = result[i]
-
-          if(constant.expression_string === undefined) continue
-          if(unbalancedDataNameList.indexOf(constant.expression_string) === -1){
-            filteredData.push(constant)
-          }
-        }
-
-        this.originalData = result
-        this.constants = filteredData
-
-        this.groupBy = [{key: 'expression_string'}, {key: 'constant_kind'}]
-        this.groupKeys = [
-          {
-            key: 'expression_string',
-            name: 'Expression',
-            isChecked: true
-          },
-          {
-            key: 'constant_kind',
-            name: 'Constant Kind',
-            isChecked: true
-          },
-          {
-            key: 'ionic_strength',
-            name: 'Ionic Strength',
-            isChecked: false
-          },
-          {
-            key: 'value',
-            name: 'Value',
-            isChecked: false
-          },
-          {
-            key: 'temperature',
-            name: 'Temperature',
-            isChecked: false
-          }
-        ]
-      })
-      .catch(err => {console.log("Failed To Constants: " + err)})
-
-    getMolData(this.selectedSearchResult.ligand_id)
-      .then(async result => {
-        if(!result) return
-
-        this.molData = result
-        await this.load2DMol();
-        await this.load2DMol();
-
-        await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
-
-        const smiles = await this.getSmileCode()
-
-        this.smileStr = smiles
-      })
-      .catch(err => {console.log("Failed To Request Mol Data: " + err)})
-      .finally(() => {
-        this.isLoading = false
-      })
-
-    getReferences(this.selectedSearchResult.ligand_id)
-      .then(result => {
-        if(!result) return
-
-        this.references = result
-      })
-      .catch(err => {console.log("Failed To Request References: " + err)})
+    this.loadConstants()
+    this.loadMolData()
+    this.loadReferences()
   },
   computed: {
     molViewStyle(): string{

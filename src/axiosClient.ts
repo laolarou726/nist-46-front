@@ -10,7 +10,7 @@ import {MolDataRawResultModel} from "@/models/MolDataResultModel";
 import {ReferenceFetchResultModel} from "@/models/ReferenceFetchResultModel";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_ADDR ?? "https://backend.corona.studio/rest"
+  baseURL: import.meta.env.VITE_BACKEND_ADDR ?? "http://127.0.0.1:8083/rest"
 })
 
 export async function getMolData(ligandId: number): Promise<MolDataRawResultModel | null> {

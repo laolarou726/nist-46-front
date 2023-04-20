@@ -7,7 +7,7 @@ import {
 export const searchResultStore = defineStore('searchResult', {
   state: () => ({
     searchResult: [] as LigandSearchResultModel[],
-    selectedSearchResult: new ProcessedLigandAdvanceSearchResultModel() as LigandSearchResultModel
+    selectedSearchResult: new ProcessedLigandAdvanceSearchResultModel() as ProcessedLigandAdvanceSearchResultModel
   }),
   getters: {
     getKeys(): string[]{
