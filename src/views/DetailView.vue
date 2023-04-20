@@ -607,9 +607,7 @@ export default defineComponent({
           }
         ]
       })
-      .finally(() => {
-        this.isLoading = false
-      })
+      .catch(err => {console.log("Failed To Constants: " + err)})
 
     getMolData(this.selectedSearchResult.ligand_id)
       .then(async result => {
@@ -625,6 +623,10 @@ export default defineComponent({
 
         this.smileStr = smiles
       })
+      .catch(err => {console.log("Failed To Request Mol Data: " + err)})
+      .finally(() => {
+        this.isLoading = false
+      })
 
     getReferences(this.selectedSearchResult.ligand_id)
       .then(result => {
@@ -632,6 +634,7 @@ export default defineComponent({
 
         this.references = result
       })
+      .catch(err => {console.log("Failed To Request References: " + err)})
   },
   computed: {
     molViewStyle(): string{
