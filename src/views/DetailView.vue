@@ -222,7 +222,7 @@
       <v-card
         class="mx-auto mt-8"
         variant="outlined"
-        v-if="this.references"
+        v-if="(this.references && this.references.length !== 0)"
       >
         <v-card-item>
           <div>
