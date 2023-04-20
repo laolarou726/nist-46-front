@@ -97,9 +97,10 @@
 
 <script lang="ts">
 
+import { defineComponent } from 'vue'
 import { useTheme } from 'vuetify'
 
-export default {
+export default defineComponent({
   setup () {
     const theme = useTheme()
     const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -139,7 +140,10 @@ export default {
     changeDrawerStatus(){
       this.drawer = !this.drawer
     }
+  },
+  mounted() {
+    this.$loadScript("https://vercel.com/_vercel/insights/script.js")
   }
-}
+})
 
 </script>
