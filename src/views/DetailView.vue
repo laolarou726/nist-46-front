@@ -18,7 +18,7 @@
         color="yellow-darken-2"
       ></v-progress-linear>
 
-      <div class="d-flex text-caption text-left mt-8">
+      <div class="d-flex text-caption text-left mt-8" v-if="this.molData">
         <v-alert
           type="info"
           title="Tips"
@@ -29,7 +29,7 @@
 
       <v-container class="pa-0 mt-8">
         <v-row no-gutters>
-          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'">
+          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'" sm="12" :lg="(this.molData ? 6 : 12)">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
@@ -77,7 +77,7 @@
               </div>
             </v-card>
           </v-col>
-          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData">
+          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData" sm="12" lg="6">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
