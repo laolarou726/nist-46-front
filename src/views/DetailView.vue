@@ -635,7 +635,7 @@ export default defineComponent({
         })
         .catch(err => {
           this.failedResources.push({
-            resourceName: 'MolData',
+            resourceName: 'Constants',
             detail: err,
             action: () => this.loadConstants()
           })
@@ -676,7 +676,7 @@ export default defineComponent({
         })
         .catch(err => {
           this.failedResources.push({
-            resourceName: 'MolData',
+            resourceName: 'References',
             detail: err,
             action: () => this.loadReferences()
           })
