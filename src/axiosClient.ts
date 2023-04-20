@@ -14,7 +14,12 @@ const axiosClient = axios.create({
 })
 
 export async function getMolData(ligandId: number): Promise<MolDataRawResultModel | null> {
-  const result = await axiosClient.get<MolDataRawResultModel>(`/mol/get/${ligandId}`, { validateStatus: status => (status >= 200 && status < 300) || status == 404 });
+  const result = await axiosClient.get<MolDataRawResultModel>(`/mol/get/${ligandId}`, {
+    headers: {
+      'Access-Control-Allow-Origin' : '*'
+    },
+    validateStatus: status => (status >= 200 && status < 300) || status == 404
+  });
 
   if(result.status !== 200) return null;
 
@@ -22,7 +27,12 @@ export async function getMolData(ligandId: number): Promise<MolDataRawResultMode
 }
 
 export async function getReferences(ligandId: number): Promise<ReferenceFetchResultModel[] | null> {
-  const result = await axiosClient.get<ReferenceFetchResultModel[]>(`/ref/get/${ligandId}`, { validateStatus: status => (status >= 200 && status < 300) || status == 404 });
+  const result = await axiosClient.get<ReferenceFetchResultModel[]>(`/ref/get/${ligandId}`, {
+    headers: {
+      'Access-Control-Allow-Origin' : '*'
+    },
+    validateStatus: status => (status >= 200 && status < 300) || status == 404
+  });
 
   if(result.status !== 200) return null;
   if(!result.data || result.data.length === 0) return null;
@@ -31,7 +41,11 @@ export async function getReferences(ligandId: number): Promise<ReferenceFetchRes
 }
 
 export async function simpleSearch(ligands: string[]): Promise<LigandSearchResultModel[] | null> {
-  const result = await axiosClient.post<LigandSearchResultModel[]>('/db/search/ligand', ligands);
+  const result = await axiosClient.post<LigandSearchResultModel[]>('/db/search/ligand', ligands, {
+    headers: {
+      'Access-Control-Allow-Origin' : '*'
+    }
+  });
 
   if(result.status !== 200) return null;
 
@@ -39,7 +53,11 @@ export async function simpleSearch(ligands: string[]): Promise<LigandSearchResul
 }
 
 export async function advanceSearch(reqModel: AdvanceSearchRequestModel): Promise<ProcessedLigandAdvanceSearchResultModel[] | null> {
-  const result = await axiosClient.post<LigandAdvanceSearchResultModel[]>('/db/search/advance', reqModel);
+  const result = await axiosClient.post<LigandAdvanceSearchResultModel[]>('/db/search/advance', reqModel, {
+    headers: {
+      'Access-Control-Allow-Origin' : '*'
+    }
+  });
 
   if(result.status !== 200) return null;
 
@@ -50,6 +68,10 @@ export async function getConstants(ligandId: number, metalId: number): Promise<C
   const result = await axiosClient.post<ConstantResultModel[]>('/db/constants', {
     ligandId: ligandId,
     metalId: metalId
+  }, {
+    headers: {
+      'Access-Control-Allow-Origin' : '*'
+    }
   });
 
   if(result.status !== 200) return null;
