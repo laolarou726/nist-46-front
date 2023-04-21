@@ -358,7 +358,10 @@ export default defineComponent({
       itemsPerPage: 40,
       originalData: [] as ConstantResultModel[],
       showUnbalancedData: false,
-      failedResources: [] as RequestFailedModel[]
+      failedResources: [] as RequestFailedModel[],
+      failedConstantCount: 0,
+      failedMolDataCount: 0,
+      failedReferenceCount: 0
     }
   },
   methods: {
@@ -634,6 +637,13 @@ export default defineComponent({
           ]
         })
         .catch(err => {
+          this.failedConstantCount += 1
+
+          if(this.failedConstantCount < 3){
+            this.loadConstants()
+            return
+          }
+
           this.failedResources.push({
             resourceName: 'Constants',
             detail: err,
@@ -657,6 +667,13 @@ export default defineComponent({
           this.smileStr = smiles
         })
         .catch(err => {
+          this.failedMolDataCount += 1
+
+          if(this.failedMolDataCount < 3){
+            this.loadMolData()
+            return
+          }
+
           this.failedResources.push({
             resourceName: 'MolData',
             detail: err,
@@ -675,6 +692,13 @@ export default defineComponent({
           this.references = result
         })
         .catch(err => {
+          this.failedReferenceCount += 1
+
+          if(this.failedReferenceCount < 3){
+            this.loadReferences()
+            return
+          }
+
           this.failedResources.push({
             resourceName: 'References',
             detail: err,
@@ -685,6 +709,10 @@ export default defineComponent({
   },
   mounted() {
     const store = searchResultStore()
+
+    this.failedConstantCount = 0
+    this.failedMolDataCount = 0
+    this.failedReferenceCount = 0
 
     this.selectedSearchResult = store.selectedSearchResult
     this.categories = store.selectedSearchResult.categories == '' ? null : store.selectedSearchResult.categories?.split(',') ?? null
