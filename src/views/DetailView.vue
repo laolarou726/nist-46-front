@@ -636,10 +636,11 @@ export default defineComponent({
             }
           ]
         })
-        .catch(err => {
+        .catch(async err => {
           this.failedConstantCount += 1
 
           if(this.failedConstantCount < 3){
+            await new Promise(r => setTimeout(r, 500 * this.failedConstantCount));
             this.loadConstants()
             return
           }
@@ -666,10 +667,11 @@ export default defineComponent({
 
           this.smileStr = smiles
         })
-        .catch(err => {
+        .catch(async err => {
           this.failedMolDataCount += 1
 
           if(this.failedMolDataCount < 3){
+            await new Promise(r => setTimeout(r, 500 * this.failedMolDataCount));
             this.loadMolData()
             return
           }
@@ -691,10 +693,11 @@ export default defineComponent({
 
           this.references = result
         })
-        .catch(err => {
+        .catch(async err => {
           this.failedReferenceCount += 1
 
           if(this.failedReferenceCount < 3){
+            await new Promise(r => setTimeout(r, 500 * this.failedReferenceCount));
             this.loadReferences()
             return
           }
