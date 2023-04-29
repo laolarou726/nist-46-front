@@ -17,8 +17,7 @@ export default defineConfig({
     vuetify({
       autoImport: true,
     }),
-    compression(),
-    compression({ algorithm: 'brotliCompress', exclude: [/\.(br)$/, /\.(gz)$/], deleteOriginalAssets: true })
+    compression()
   ],
   define: { 'process.env': {} },
   resolve: {
