@@ -20,7 +20,7 @@
 
         <v-app-bar-title>
           <v-btn class="pl-4 pr-4" to="/" variant="flat" color="transparent">
-            <div class="text-h6">NIST-46</div>
+            <div class="text-h6">WRASCAL</div>
           </v-btn>
         </v-app-bar-title>
 

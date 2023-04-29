@@ -10,6 +10,11 @@ export class LigandSearchResultModel {
   form!: string;
   uncertainty_id!: number;
   formula_string!: string;
+  previewLoading!: boolean;
+  showDialog!: boolean;
+  noPreviewAvailable!: boolean;
+  previewLoaded!: boolean;
+  drawCode?: string;
 }
 
 export class LigandAdvanceSearchResultModel extends LigandSearchResultModel {

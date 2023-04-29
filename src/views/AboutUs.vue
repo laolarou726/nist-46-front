@@ -26,6 +26,9 @@
           <v-btn variant="outlined" prepend-icon="mdi-arrow-left" to="/">
             Return To Home Page
           </v-btn>
+          <v-btn variant="outlined" prepend-icon="mdi-link-box-outline" @click="openNistWebsite">
+            Original NIST Website
+          </v-btn>
         </v-card-actions>
       </v-card>
 
@@ -73,6 +76,13 @@
 import { toSvg } from "jdenticon";
 import {useMeta} from "vue-meta";
 
+declare interface MemberInfo{
+  name: string;
+  role: string;
+  link: string;
+  src?: string;
+}
+
 export default {
   name: "AboutUs",
   setup: () => {
@@ -100,11 +110,14 @@ export default {
         name: 'Nate Boland',
         role: 'Client'
       }
-    ]
+    ] as MemberInfo[]
   }),
   methods: {
     getRandomAvatar(id){
       return toSvg(id, 40)
+    },
+    openNistWebsite(){
+      window.open('https://www.nist.gov/srd/nist46', '_blank', 'noreferrer')
     }
   }
 }

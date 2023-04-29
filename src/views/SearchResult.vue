@@ -96,6 +96,36 @@
                 Detail
               </v-btn>
             </template>
+            <template v-slot:[`item.preview`]="{ item }">
+              <v-dialog
+                v-model="item.raw.showDialog"
+                width="auto"
+              >
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" variant="text" icon="mdi-cube-scan"></v-btn>
+                </template>
+                <v-card
+                    title="Mol Preview (2D)">
+                  <div id="mol2D" style="width: 400px; height: 300px" class="pa-5"
+                        v-if="item.raw.previewLoaded"></div>
+                  <v-card-text>
+                    Click [Load] To Load The Preview For This Ligand.
+                  </v-card-text>
+                  <v-alert
+                    type="error"
+                    variant="outlined"
+                    v-if="item.raw.noPreviewAvailable"
+                    class="ml-5 mr-5"
+                  >
+                    No Preview Available For This Ligand!
+                  </v-alert>
+                  <v-card-actions>
+                    <v-btn color="primary" @click="item.raw.showDialog = false; item.raw.previewLoaded = false">Close Dialog</v-btn>
+                    <v-btn color="primary" @click="loadPreview(item.raw)" :loading="item.raw.previewLoading">Load</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </template>
             <template v-slot:[`item.molecular_formula`]="{ item }">
               <div v-html="item.raw.molecular_formula"></div>
             </template>
@@ -126,11 +156,13 @@ import { defineComponent } from 'vue'
 import {searchResultStore} from "@/stores/searchResultStore";
 import {useMeta} from "vue-meta";
 import katex from "katex";
+import "openchemlib/full"
 import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
 import ProtonationDisplayUtil from "@/utils/ProtonationDisplayUtil";
 import GroupByModel from "@/models/Group/GroupByModel";
 import GroupKeyModel from "@/models/Group/GroupKeyModel";
 import {LigandSearchResultModel} from "@/models/LigandSearchResultModel";
+import {getMolData} from "@/axiosClient";
 
 const filterKeyMapping: Record<string, string> = {
   'name': 'Name',
@@ -139,6 +171,14 @@ const filterKeyMapping: Record<string, string> = {
   'metal_charge': 'Metal Charge',
   'formula_string': 'Formula String'
 }
+
+const srcLinks = [
+  "https://cdn.jsdelivr.net/gh/BoboRett/MolViewer@v0.52/molViewer.js",
+  "https://d3js.org/d3.v5.js",
+  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/build/three.min.js",
+  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/effects/OutlineEffect.js",
+  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/controls/OrbitControls.js"
+]
 
 export default defineComponent({
   name: "SearchResult",
@@ -151,6 +191,7 @@ export default defineComponent({
     itemsPerPage: 50,
     headers: [
       { title: 'Actions', key: 'actions', sortable: false },
+      { title: 'Preview', key: 'preview', sortable: false },
       {
         title: 'Name',
         align: 'start',
@@ -198,6 +239,71 @@ export default defineComponent({
       const latexStr = ProtonationDisplayUtil.formatProtonationString(pro)
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
+    },
+    async loadPreviewScripts(){
+      for(const src of srcLinks){
+        await this.$loadScript(src)
+      }
+    },
+    async unloadPreviewScripts(){
+      for(const src of srcLinks){
+        await this.$unloadScript(src)
+      }
+    },
+    async getSmileCode(item: LigandSearchResultModel): Promise<string>{
+      await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
+
+      // @ts-ignore
+      const RDKit = await window.initRDKitModule()
+      // @ts-ignore
+      const smiles = RDKit.get_mol(item.drawCode).get_smiles()
+
+      return smiles
+    },
+    async load2DMol(item: LigandSearchResultModel){
+      await this.loadPreviewScripts()
+      const smiles = await this.getSmileCode(item)
+
+      // @ts-ignore
+      // eslint-disable-next-line no-undef
+      const molecule2D = new MolViewer.Molecule()
+      molecule2D.get2DFromSMILE(smiles);
+
+      const mol2DElement = document.getElementById( "mol2D" );
+
+      // @ts-ignore
+      mol2DElement.innerHTML = ''
+
+      // @ts-ignore
+      // eslint-disable-next-line no-undef
+      const mol2D = new MolViewer.Mol2D(null, mol2DElement);
+
+      mol2D.init();
+      mol2D.Molecule = molecule2D;
+      mol2D.draw()
+
+      //this.molLoaded = true
+      await this.unloadPreviewScripts()
+    },
+    async loadPreview(item: LigandSearchResultModel){
+      item.previewLoading = true;
+
+      getMolData(item.ligand_id).then(async result => {
+        if(!result){
+          item.noPreviewAvailable = true
+          return
+        }
+
+        item.drawCode = result.drawCode
+        item.previewLoaded = true
+        await this.load2DMol(item)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+      .finally(() => {
+        item.previewLoading = false;
+      });
     }
   },
   mounted() {
@@ -208,7 +314,7 @@ export default defineComponent({
 
     this.groupKeys = []
     for(const key of store.getKeys){
-      if(filterKeyMapping[key] === undefined) continue
+      if(!filterKeyMapping[key]) continue
 
       this.groupKeys.push({
         key: key,

@@ -78,7 +78,7 @@
                   <span v-if="!this.molecular_formula">-</span>
                   <span v-else v-html="this.molecular_formula"></span>
                 </v-list-item>
-                <v-list-item>SMILE: {{this.smileStr}}</v-list-item>
+                <v-list-item>SMILES: {{this.smileStr}}</v-list-item>
                 <v-list-item>Ligand ID: {{this.selectedSearchResult?.ligand_id ?? '-'}}</v-list-item>
                 <v-list-item>Metal ID: {{this.selectedSearchResult?.metal_id ?? '-'}}</v-list-item>
               </v-list>
@@ -198,7 +198,7 @@
                 :icon="isGroupOpen(item) ? '$expand' : '$next'"
                 @click="toggleGroup(item)"
               ></VBtn>
-              <span v-html="item.value"></span>
+              <span v-html="tryFormatGroupTitle(item.value)" class="no-katex-html"></span>
             </td>
           </tr>
         </template>
@@ -708,6 +708,12 @@ export default defineComponent({
             action: () => this.loadReferences()
           })
         })
+    },
+    tryFormatGroupTitle(str: string): string{
+      if(str.indexOf("/") !== -1 && str.indexOf("L") !== -1 && str.indexOf("[") !== -1 && str.indexOf("]") !== -1)
+        return this.convertExpressionToLatex(str).replace("display=\"block\"", "")
+
+      return str
     }
   },
   mounted() {
@@ -738,7 +744,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped>
-
-</style>
