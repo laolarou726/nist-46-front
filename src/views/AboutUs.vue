@@ -22,7 +22,7 @@
           </div>
         </v-card-item>
 
-        <v-card-actions>
+        <v-card-actions style="overflow-x: auto; max-width: 370px;">
           <v-btn variant="outlined" prepend-icon="mdi-arrow-left" to="/">
             Return To Home Page
           </v-btn>
