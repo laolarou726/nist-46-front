@@ -106,7 +106,7 @@
                 </template>
                 <v-card
                     title="Mol Preview (2D)">
-                  <div id="mol2D" style="width: 400px; height: 300px" class="pa-5"
+                  <div id="mol2D" :style="molViewStyle" class="pa-5"
                         v-if="item.raw.previewLoaded"></div>
                   <v-card-text>
                     Click [Load] To Load The Preview For This Ligand.
@@ -145,13 +145,8 @@
   </v-container>
 </template>
 
-<style>
-.no-katex-html .katex-html{
-  display: none;
-}
-</style>
-
 <script lang="ts">
+import "@/assets/latex.css"
 import { defineComponent } from 'vue'
 import {searchResultStore} from "@/stores/searchResultStore";
 import {useMeta} from "vue-meta";
@@ -161,8 +156,10 @@ import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
 import ProtonationDisplayUtil from "@/utils/ProtonationDisplayUtil";
 import GroupByModel from "@/models/Group/GroupByModel";
 import GroupKeyModel from "@/models/Group/GroupKeyModel";
-import {LigandSearchResultModel} from "@/models/LigandSearchResultModel";
+import {LigandSearchResultModel, ProcessedLigandAdvanceSearchResultModel} from "@/models/LigandSearchResultModel";
 import {getMolData} from "@/axiosClient";
+import PreviewMethodsMixin from "@/mixins/PreviewMethodsMixin";
+import {useTheme} from "vuetify";
 
 const filterKeyMapping: Record<string, string> = {
   'name': 'Name',
@@ -172,16 +169,9 @@ const filterKeyMapping: Record<string, string> = {
   'formula_string': 'Formula String'
 }
 
-const srcLinks = [
-  "https://cdn.jsdelivr.net/gh/BoboRett/MolViewer@v0.52/molViewer.js",
-  "https://d3js.org/d3.v5.js",
-  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/build/three.min.js",
-  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/effects/OutlineEffect.js",
-  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/controls/OrbitControls.js"
-]
-
 export default defineComponent({
   name: "SearchResult",
+  mixins: [PreviewMethodsMixin],
   setup: () => {
     useMeta({
       title: 'Search Results'
@@ -222,7 +212,7 @@ export default defineComponent({
     goToDetailPage(item: LigandSearchResultModel){
       const store = searchResultStore()
 
-      store.selectedSearchResult = item
+      store.selectedSearchResult = item as ProcessedLigandAdvanceSearchResultModel
 
       this.$router.push('/detail-view')
     },
@@ -239,16 +229,6 @@ export default defineComponent({
       const latexStr = ProtonationDisplayUtil.formatProtonationString(pro)
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
-    },
-    async loadPreviewScripts(){
-      for(const src of srcLinks){
-        await this.$loadScript(src)
-      }
-    },
-    async unloadPreviewScripts(){
-      for(const src of srcLinks){
-        await this.$unloadScript(src)
-      }
     },
     async getSmileCode(item: LigandSearchResultModel): Promise<string>{
       await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
@@ -321,6 +301,14 @@ export default defineComponent({
         name: filterKeyMapping[key],
         isChecked: (key === "name" || key === "central_element")
       })
+    }
+  },
+  computed: {
+    molViewStyle(): string{
+      const theme = useTheme()
+      const background = theme.global.current.value.dark ? 'gray' : 'transparent'
+
+      return `height: 400px; background: ${background};`
     }
   }
 })

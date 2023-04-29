@@ -267,17 +267,9 @@
   </v-container>
 </template>
 
-<style>
-.disabled{
-  pointer-events: none;
-}
-
-.no-katex-html .katex-html{
-  display: none;
-}
-</style>
-
 <script lang="ts">
+import "@/assets/latex.css"
+import "@/assets/common.css"
 import { defineComponent } from 'vue'
 import {searchResultStore} from "@/stores/searchResultStore";
 import {
@@ -299,20 +291,9 @@ import { MolDataRawResultModel } from '@/models/MolDataResultModel';
 import {ReferenceFetchResultModel} from "@/models/ReferenceFetchResultModel";
 import GroupByModel from "@/models/Group/GroupByModel";
 import GroupKeyModel from "@/models/Group/GroupKeyModel";
-
-const srcLinks = [
-  "https://cdn.jsdelivr.net/gh/BoboRett/MolViewer@v0.52/molViewer.js",
-  "https://d3js.org/d3.v5.js",
-  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/build/three.min.js",
-  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/effects/OutlineEffect.js",
-  "https://cdn.jsdelivr.net/gh/mrDoob/three.js@r97/examples/js/controls/OrbitControls.js"
-]
-
-const unbalancedDataNameList = [
-  "[L]/[ML(s,amorphous)]",
-  "[L]/[ML(s,am)]",
-  "[OH][L]/[MOHL(s)]"
-]
+import {unbalancedDataNameList} from "@/Constants";
+import UncertaintyUtils from "@/utils/UncertaintyUtils";
+import PreviewMethodsMixin from "@/mixins/PreviewMethodsMixin";
 
 declare interface RequestFailedModel{
   resourceName: string;
@@ -322,6 +303,7 @@ declare interface RequestFailedModel{
 
 export default defineComponent({
   name: "DetailView",
+  mixins: [PreviewMethodsMixin],
   setup: () => {
     useMeta({
       title: 'Detail'
@@ -365,26 +347,6 @@ export default defineComponent({
     }
   },
   methods: {
-    async loadPreviewScripts(){
-      for(const src of srcLinks){
-        await this.$loadScript(src)
-      }
-    },
-    async unloadPreviewScripts(){
-      for(const src of srcLinks){
-        await this.$unloadScript(src)
-      }
-    },
-    async getSmileCode(): Promise<string>{
-      await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
-
-      // @ts-ignore
-      const RDKit = await window.initRDKitModule()
-      // @ts-ignore
-      const smiles = RDKit.get_mol(this.molData?.drawCode).get_smiles()
-
-      return smiles
-    },
     async load2DMol(){
       await this.loadPreviewScripts()
 
@@ -462,54 +424,10 @@ export default defineComponent({
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
     convertValueWithUncertaintyToLatex1(val?: number, uncertainty?: number, direction?: string, kind?: string){
-      if(!val) return '-'
-
-      if(!kind) return katex.renderToString(val.toString(), { displayMode: true, throwOnError: false })
-
-      const signDic: Record<string, string> = {
-        'Positive': '+',
-        'Negative': '-',
-        'Both': '\\pm',
-        '-': ''
-      }
-      const unitDic: Record<string, string> = {
-        'Enthalpy': '\\frac{kCal}{mol}',
-        'Entropy': '\\frac{Cal}{mol \\Kappa}',
-        'Equilibrium': '',
-        '-': ''
-      }
-      const latexStr = `${val}${signDic[direction ?? '-']}${uncertainty ?? ''}\\space${unitDic[kind ?? '-']}`
-
-      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
+      return UncertaintyUtils.convertValueWithUncertaintyToLatex1(val, uncertainty, direction, kind)
     },
     convertValueWithUncertaintyToLatex2(val?: number, uncertainty?: number, direction?: string, kind?: string){
-      if(!val) return '-'
-
-      if(kind && kind !== "Equilibrium"){
-        val *= 4.184
-
-        if(uncertainty){
-          uncertainty *= 4.184
-          uncertainty.toFixed(0)
-        }
-      }
-
-      if(!kind) return katex.renderToString(val.toString(), { displayMode: true, throwOnError: false })
-
-      const signDic: Record<string, string> = {
-        'Positive': '+',
-        'Negative': '-',
-        'Both': '\\pm',
-        '-': ''
-      }
-      const unitDic: Record<string, string> = {
-        'Enthalpy': '\\frac{kJ}{mol}',
-        'Entropy': '\\frac{J}{mol \\Kappa}',
-        '-': ''
-      }
-      const latexStr = `${val.toFixed(1)}${signDic[direction ?? '-']}${(uncertainty?.toFixed(0)) ?? ''}\\space${unitDic[kind ?? '-']}`
-
-      return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
+      return UncertaintyUtils.convertValueWithUncertaintyToLatex2(val, uncertainty, direction, kind)
     },
     switchPreviewMode(){
       this.isIn3DPreviewMode = !this.isIn3DPreviewMode
@@ -653,6 +571,8 @@ export default defineComponent({
         })
     },
     loadMolData(){
+      if(!this.selectedSearchResult?.ligand_id) return
+
       getMolData(this.selectedSearchResult.ligand_id)
         .then(async result => {
           if(!result) return
@@ -687,6 +607,8 @@ export default defineComponent({
         })
     },
     loadReferences(){
+      if(!this.selectedSearchResult?.ligand_id) return
+
       getReferences(this.selectedSearchResult.ligand_id)
         .then(result => {
           if(!result) return
