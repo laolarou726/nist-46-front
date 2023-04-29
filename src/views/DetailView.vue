@@ -6,7 +6,7 @@
         variant="outlined"
       >
         <v-card-actions>
-          <v-btn variant="outlined" prepend-icon="mdi-arrow-left" @click="returnToSearchResultPage">
+          <v-btn variant="outlined" prepend-icon="mdi-arrow-left" @click="goBack">
             Return To Search Page
           </v-btn>
         </v-card-actions>
@@ -294,6 +294,7 @@ import GroupKeyModel from "@/models/Group/GroupKeyModel";
 import {unbalancedDataNameList} from "@/Constants";
 import UncertaintyUtils from "@/utils/UncertaintyUtils";
 import PreviewMethodsMixin from "@/mixins/PreviewMethodsMixin";
+import RouterMixin from "@/mixins/RouterMixin";
 
 declare interface RequestFailedModel{
   resourceName: string;
@@ -303,7 +304,7 @@ declare interface RequestFailedModel{
 
 export default defineComponent({
   name: "DetailView",
-  mixins: [PreviewMethodsMixin],
+  mixins: [PreviewMethodsMixin, RouterMixin],
   setup: () => {
     useMeta({
       title: 'Detail'
@@ -347,64 +348,8 @@ export default defineComponent({
     }
   },
   methods: {
-    async load2DMol(){
-      await this.loadPreviewScripts()
-
-      const smiles = await this.getSmileCode()
-
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const molecule2D = new MolViewer.Molecule()
-      molecule2D.get2DFromSMILE(smiles);
-
-      const mol2DElement = document.getElementById( "mol2D" );
-
-      // @ts-ignore
-      mol2DElement.innerHTML = ''
-
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const mol2D = new MolViewer.Mol2D(null, mol2DElement);
-
-      mol2D.init();
-      mol2D.Molecule = molecule2D;
-      mol2D.draw()
-
-      this.molLoaded = true
-      await this.unloadPreviewScripts()
-    },
-    async load3DMol(){
-      await this.loadPreviewScripts()
-
-      const smiles = await this.getSmileCode()
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const molecule3D = new MolViewer.Molecule()
-      molecule3D.get3DFromSMILE(smiles);
-
-      const mol3DElement = document.getElementById( "mol3D" );
-
-      // @ts-ignore
-      mol3DElement.innerHTML = ''
-
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const mol3D = new MolViewer.Mol3D(null, mol3DElement );
-
-      mol3D.init();
-
-      document.addEventListener( "ajaxComplete", () => {
-        mol3D.Molecule = molecule3D; mol3D.draw()
-      });
-
-      this.molLoaded = true
-      await this.unloadPreviewScripts()
-    },
     getFootNote(id: string){
       return FootNoteUtils.fromLegacyId(id)
-    },
-    returnToSearchResultPage(){
-      this.$router.go(-1)
     },
     getFormattedConstantKind(kind?: string){
       if(!kind) return '-'
@@ -434,12 +379,15 @@ export default defineComponent({
       this.molLoaded = false
     },
     async loadPreview(){
+      if(!this.molData.drawCode) return
       if(this.isIn3DPreviewMode)
-        await this.load3DMol()
+        await this.load3DMol(this.molData.drawCode, this.notifyMolLoaded)
       else{
-        await this.load2DMol()
-        await this.load2DMol()
+        await this.load2DMol(this.molData.drawCode, this.notifyMolLoaded)
+        await this.load2DMol(this.molData.drawCode, this.notifyMolLoaded)
       }
+
+      this.molLoaded = true
     },
     getFormattedMetalForm(form?: string){
       if(!form || form === '-') return '-'
@@ -570,6 +518,9 @@ export default defineComponent({
           })
         })
     },
+    notifyMolLoaded(){
+      this.molLoaded = true
+    },
     loadMolData(){
       if(!this.selectedSearchResult?.ligand_id) return
 
@@ -578,12 +529,10 @@ export default defineComponent({
           if(!result) return
 
           this.molData = result
-          await this.load2DMol();
-          await this.load2DMol();
+          await this.load2DMol(result.drawCode, this.notifyMolLoaded);
+          await this.load2DMol(result.drawCode, this.notifyMolLoaded);
 
-          await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
-
-          const smiles = await this.getSmileCode()
+          const smiles = await this.getSmileCode(result.drawCode)
 
           this.smileStr = smiles
         })

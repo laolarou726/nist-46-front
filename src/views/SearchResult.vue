@@ -22,7 +22,7 @@
         </v-card-item>
 
         <v-card-actions>
-          <v-btn variant="outlined" prepend-icon="mdi-arrow-left" @click="returnToSearchPage">
+          <v-btn variant="outlined" prepend-icon="mdi-arrow-left" @click="goBack">
             Return To Search Page
           </v-btn>
         </v-card-actions>
@@ -160,6 +160,7 @@ import {LigandSearchResultModel, ProcessedLigandAdvanceSearchResultModel} from "
 import {getMolData} from "@/axiosClient";
 import PreviewMethodsMixin from "@/mixins/PreviewMethodsMixin";
 import {useTheme} from "vuetify";
+import RouterMixin from "@/mixins/RouterMixin";
 
 const filterKeyMapping: Record<string, string> = {
   'name': 'Name',
@@ -171,7 +172,7 @@ const filterKeyMapping: Record<string, string> = {
 
 export default defineComponent({
   name: "SearchResult",
-  mixins: [PreviewMethodsMixin],
+  mixins: [PreviewMethodsMixin, RouterMixin],
   setup: () => {
     useMeta({
       title: 'Search Results'
@@ -196,9 +197,6 @@ export default defineComponent({
     groupKeys: [] as GroupKeyModel[]
   }),
   methods: {
-    returnToSearchPage(){
-      this.$router.go(-1)
-    },
     regroup(){
       const temp = []
 
@@ -230,41 +228,6 @@ export default defineComponent({
 
       return katex.renderToString(latexStr, { displayMode: true, throwOnError: false })
     },
-    async getSmileCode(item: LigandSearchResultModel): Promise<string>{
-      await this.$loadScript("https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js")
-
-      // @ts-ignore
-      const RDKit = await window.initRDKitModule()
-      // @ts-ignore
-      const smiles = RDKit.get_mol(item.drawCode).get_smiles()
-
-      return smiles
-    },
-    async load2DMol(item: LigandSearchResultModel){
-      await this.loadPreviewScripts()
-      const smiles = await this.getSmileCode(item)
-
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const molecule2D = new MolViewer.Molecule()
-      molecule2D.get2DFromSMILE(smiles);
-
-      const mol2DElement = document.getElementById( "mol2D" );
-
-      // @ts-ignore
-      mol2DElement.innerHTML = ''
-
-      // @ts-ignore
-      // eslint-disable-next-line no-undef
-      const mol2D = new MolViewer.Mol2D(null, mol2DElement);
-
-      mol2D.init();
-      mol2D.Molecule = molecule2D;
-      mol2D.draw()
-
-      //this.molLoaded = true
-      await this.unloadPreviewScripts()
-    },
     async loadPreview(item: LigandSearchResultModel){
       item.previewLoading = true;
 
@@ -276,7 +239,7 @@ export default defineComponent({
 
         item.drawCode = result.drawCode
         item.previewLoaded = true
-        await this.load2DMol(item)
+        await this.load2DMol(item.drawCode)
       })
       .catch(err => {
         console.log(err)

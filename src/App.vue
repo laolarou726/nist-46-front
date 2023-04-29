@@ -88,7 +88,7 @@
         <v-divider/>
 
         <div>
-          {{ new Date().getFullYear() }} — <strong>NIST-46</strong>
+          {{ new Date().getFullYear() }} — <strong>WRASCAL</strong>
         </div>
       </v-footer>
     </v-main>
