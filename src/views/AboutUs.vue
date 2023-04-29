@@ -42,8 +42,7 @@
           >
             <v-card
               class="mx-auto ml-2 mr-2 mb-4"
-              color="#092964"
-              theme="dark"
+              color="primary"
               max-width="400"
               :href="member.link ?? '#'"
             >

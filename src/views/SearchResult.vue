@@ -104,9 +104,8 @@
                 <template v-slot:activator="{ props }">
                   <v-btn v-bind="props" variant="text" icon="mdi-cube-scan"></v-btn>
                 </template>
-                <v-card
-                    title="Mol Preview (2D)">
-                  <div id="mol2D" :style="molViewStyle" class="pa-5"
+                <v-card title="Mol Preview (2D)">
+                  <div id="mol2D" :style="molViewStyle" class="pa-5 mt-3"
                         v-if="item.raw.previewLoaded"></div>
                   <v-card-text>
                     Click [Load] To Load The Preview For This Ligand.
@@ -120,8 +119,9 @@
                     No Preview Available For This Ligand!
                   </v-alert>
                   <v-card-actions>
-                    <v-btn color="primary" @click="item.raw.showDialog = false; item.raw.previewLoaded = false">Close Dialog</v-btn>
-                    <v-btn color="primary" @click="loadPreview(item.raw)" :loading="item.raw.previewLoading">Load</v-btn>
+                    <v-btn color="primary" class="ml-4" variant="elevated" @click="loadPreview(item.raw)" prepend-icon="mdi-cube-scan" :loading="item.raw.previewLoading">Load</v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn color="secondary" class="mr-2" @click="item.raw.showDialog = false; item.raw.previewLoaded = false">Close Dialog</v-btn>
                   </v-card-actions>
                 </v-card>
               </v-dialog>

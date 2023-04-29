@@ -1,7 +1,7 @@
 <template>
   <v-container class="fill-height">
     <v-responsive class="d-flex align-center text-center fill-height">
-      <div class="text-left text-h2">WRASCAL</div>
+      <div class="text-left text-h2 font-weight-bold">WRASCAL</div>
       <div class="text-left text-h6 pl-2">Whitman Repository of Accepted Stability Constants of Aqueous Ligands</div>
       <SimpleSearchForm v-if="isSimpleSearch" v-model:ligands="this.ligands" :is-loading="isLoading" @onSearch="searchLigands"/>
       <AdvanceSearchForm v-else
