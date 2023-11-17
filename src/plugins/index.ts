@@ -13,7 +13,6 @@ import LoadScript from 'vue-plugin-load-script';
 
 // Types
 import type { App } from 'vue'
-import {createMetaManager} from "vue-meta";
 
 export function registerPlugins (app: App) {
   loadFonts()
@@ -22,5 +21,4 @@ export function registerPlugins (app: App) {
     .use(router)
     .use(pinia)
     .use(LoadScript)
-    .use(createMetaManager())
 }

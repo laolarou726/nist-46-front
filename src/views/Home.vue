@@ -3,15 +3,15 @@
     <v-responsive class="d-flex align-center text-center fill-height">
       <div class="text-left text-h2 font-weight-bold">WRASCAL</div>
       <div class="text-left text-h6 pl-2">Whitman Repository of Accepted Stability Constants of Aqueous Ligands</div>
-      <SimpleSearchForm v-if="isSimpleSearch" v-model:ligands="this.ligands" :is-loading="isLoading" @onSearch="searchLigands"/>
+      <SimpleSearchForm v-if="isSimpleSearch" v-model:ligands="ligands" :is-loading="isLoading" @onSearch="searchLigands"/>
       <AdvanceSearchForm v-else
                          :is-loading="isLoading"
-                         v-model:ligands="this.ligands"
-                         v-model:metals="this.metals"
-                         v-model:categories="this.categories"
-                         v-model:chemicals="this.chemicals"
-                         v-model:ligand-charges="this.ligandCharges"
-                         v-model:metal-charges="this.metalCharges"
+                         v-model:ligands="ligands"
+                         v-model:metals="metals"
+                         v-model:categories="categories"
+                         v-model:chemicals="chemicals"
+                         v-model:ligand-charges="ligandCharges"
+                         v-model:metal-charges="metalCharges"
                          @onSearch="searchLigands"/>
       <div class="d-flex justify-end mb-6 pt-5">
         <v-btn
@@ -51,14 +51,12 @@ import {SearchRequestModel} from "@/models/AdvanceSearchRequestModel";
 import AdvanceSearchForm from "@/components/Search/AdvanceSearchForm.vue";
 import {advanceSearch, simpleSearch} from "@/axiosClient";
 import {searchResultStore} from "@/stores/searchResultStore";
-import {useMeta} from "vue-meta";
+import {ProcessedLigandAdvanceSearchResultModel} from "@/models/LigandSearchResultModel";
 
 export default defineComponent({
   name: 'home',
-  setup: () => {
-    useMeta({
-      title: 'Home'
-    })
+  metaInfo: {
+    title: 'Home'
   },
   components: {AdvanceSearchForm, SimpleSearchForm},
   data: () => ({
@@ -101,7 +99,7 @@ export default defineComponent({
               return
             }
 
-            store.searchResult = result
+            store.searchResult = result as ProcessedLigandAdvanceSearchResultModel[]
             this.$router.push('/search-result')
           })
           .finally(() => {

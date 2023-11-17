@@ -18,10 +18,10 @@
         color="yellow-darken-2"
       ></v-progress-linear>
 
-      <div class="text-caption text-left mt-8" v-if="this.failedResources.length !== 0">
+      <div class="text-caption text-left mt-8" v-if="failedResources.length !== 0">
         <v-alert
           class="mt-5"
-          v-for="failed in this.failedResources"
+          v-for="failed in failedResources"
           v-bind:key="failed.resourceName"
           density="compact"
           type="error"
@@ -34,11 +34,11 @@
         <v-divider class="mt-2 mb-2"></v-divider>
         <div class="d-flex">
           <v-spacer></v-spacer>
-          <v-btn color="info" prepend-icon="mdi-refresh" @click="this.retryFailed">Retry All</v-btn>
+          <v-btn color="info" prepend-icon="mdi-refresh" @click="retryFailed">Retry All</v-btn>
         </div>
       </div>
 
-      <div class="d-flex text-caption text-left mt-8" v-if="this.molData">
+      <div class="d-flex text-caption text-left mt-8" v-if="molData">
         <v-alert
           type="info"
           title="Tips"
@@ -49,7 +49,7 @@
 
       <v-container class="pa-0 mt-8">
         <v-row no-gutters>
-          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'" xs="12" :lg="(this.molData ? 6 : 12)">
+          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'" xs="12" :lg="(molData ? 6 : 12)">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
@@ -60,14 +60,14 @@
                     INFO
                   </div>
                   <div class="d-flex text-h6 mb-1 text-left">
-                    {{this.selectedSearchResult?.name ?? '-'}}
+                    {{selectedSearchResult?.name ?? '-'}}
                   </div>
                   <div class="d-flex text-overline mb-1">
-                    <v-chip color="blue" v-if="this.selectedSearchResult?.form">
-                      <div class="no-katex-html text-h6" v-html="getFormattedProtonationForm(this.selectedSearchResult?.form ?? '-')"></div>
+                    <v-chip color="blue" v-if="selectedSearchResult?.form">
+                      <div class="no-katex-html text-h6" v-html="getFormattedProtonationForm(selectedSearchResult?.form ?? '-')"></div>
                     </v-chip>
-                    <v-chip color="green" class="ml-3" v-if="this.selectedSearchResult?.formula_string">
-                      <div class="no-katex-html text-h6" v-html="getFormattedMetalForm(this.selectedSearchResult?.formula_string ?? '-')"></div>
+                    <v-chip color="green" class="ml-3" v-if="selectedSearchResult?.formula_string">
+                      <div class="no-katex-html text-h6" v-html="getFormattedMetalForm(selectedSearchResult?.formula_string ?? '-')"></div>
                     </v-chip>
                   </div>
                 </div>
@@ -75,16 +75,16 @@
               <v-list class="text-left" density="compact" style="overflow-y: auto; max-height: 400px;">
                 <v-list-item>
                   Expression:
-                  <span v-if="!this.molecular_formula">-</span>
-                  <span v-else v-html="this.molecular_formula"></span>
+                  <span v-if="!molecular_formula">-</span>
+                  <span v-else v-html="molecular_formula"></span>
                 </v-list-item>
-                <v-list-item>SMILES: {{this.smileStr}}</v-list-item>
-                <v-list-item>Ligand ID: {{this.selectedSearchResult?.ligand_id ?? '-'}}</v-list-item>
-                <v-list-item>Metal ID: {{this.selectedSearchResult?.metal_id ?? '-'}}</v-list-item>
+                <v-list-item>SMILES: {{smileStr}}</v-list-item>
+                <v-list-item>Ligand ID: {{selectedSearchResult?.ligand_id ?? '-'}}</v-list-item>
+                <v-list-item>Metal ID: {{selectedSearchResult?.metal_id ?? '-'}}</v-list-item>
               </v-list>
               <div class="text-left">
                 <v-chip
-                  v-for="category in this.categories"
+                  v-for="category in categories"
                   :key="category"
                   class="ma-2"
                   color="pink"
@@ -97,7 +97,7 @@
               </div>
             </v-card>
           </v-col>
-          <v-col :class="$vuetify.display.xs ? 'pt-8' : 'pl-3'" v-if="this.molData" xs="12" lg="6">
+          <v-col v-if="molData" xs="12" lg="6">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
@@ -108,7 +108,7 @@
                     PREVIEW
                   </div>
                   <div class="d-flex text-h6 mb-1">
-                    Mol Preview ({{this.isIn3DPreviewMode ? '3D' : '2D'}})
+                    Mol Preview ({{isIn3DPreviewMode ? '3D' : '2D'}})
                   </div>
                 </div>
               </v-card-item>
@@ -126,8 +126,8 @@
                 <v-btn variant="outlined" prepend-icon="mdi-cube-scan" @click="loadPreview">
                   Load
                 </v-btn>
-                <v-btn variant="outlined" :prepend-icon="(this.isIn3DPreviewMode ? 'mdi-vector-rectangle' : 'mdi-cube')" @click="switchPreviewMode">
-                  Switch To {{this.isIn3DPreviewMode ? '2D' : '3D'}} Preview
+                <v-btn variant="outlined" :prepend-icon="(isIn3DPreviewMode ? 'mdi-vector-rectangle' : 'mdi-cube')" @click="switchPreviewMode">
+                  Switch To {{isIn3DPreviewMode ? '2D' : '3D'}} Preview
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -180,7 +180,6 @@
       </v-card>
 
       <v-data-table
-        v-model:items-per-page="itemsPerPage"
         :group-by="groupBy"
         :headers="headers"
         :items="constants"
@@ -212,26 +211,26 @@
                 text-color="white"
               >
                 <v-icon start icon="mdi-note-text-outline"></v-icon>
-                FootNote: <div class="ml-2" v-html="(getFootNote(item.raw.legacy_identifier) ?? 'None')"></div>
+                FootNote: <div class="ml-2" v-html="(getFootNote(item.legacy_identifier ?? '') ?? 'None')"></div>
               </v-chip>
             </td>
           </tr>
         </template>
         <template v-slot:[`item.constant_kind`]="{ item }">
-          <v-chip :color="getConstantKindBadgeColor(item.raw.constant_kind)">
-            <div class="no-katex-html" v-html="getFormattedConstantKind(item.raw.constant_kind)"></div>
+          <v-chip :color="getConstantKindBadgeColor(item.constant_kind ?? '')">
+            <div class="no-katex-html" v-html="getFormattedConstantKind(item.constant_kind)"></div>
           </v-chip>
         </template>
         <template v-slot:[`item.expression_string`]="{ item }">
-          <div class="no-katex-html" v-html="convertExpressionToLatex(item.raw.expression_string)"></div>
+          <div class="no-katex-html" v-html="convertExpressionToLatex(item.expression_string)"></div>
         </template>
         <template v-slot:[`item.value`]="{ item }">
           <tr>
             <td style="min-width: 150px;">
-              <div class="no-katex-html pl-3 pr-3" v-html="convertValueWithUncertaintyToLatex1(item.raw.value, item.raw.magnitude, item.raw.direction, item.raw.constant_kind)"></div>
+              <div class="no-katex-html pl-3 pr-3" v-html="convertValueWithUncertaintyToLatex1(item.value, item.magnitude, item.direction, item.constant_kind)"></div>
             </td>
-            <td v-if="item.raw.constant_kind !== 'Equilibrium'">
-              <div class="no-katex-html pl-3 pr-3" v-html="convertValueWithUncertaintyToLatex2(item.raw.value, item.raw.magnitude, item.raw.direction, item.raw.constant_kind)"></div>
+            <td v-if="item.constant_kind !== 'Equilibrium'">
+              <div class="no-katex-html pl-3 pr-3" v-html="convertValueWithUncertaintyToLatex2(item.value, item.magnitude, item.direction, item.constant_kind)"></div>
             </td>
           </tr>
         </template>
@@ -242,7 +241,7 @@
       <v-card
         class="mx-auto mt-8"
         variant="outlined"
-        v-if="(this.references && this.references.length !== 0)"
+        v-if="(references && references.length !== 0)"
       >
         <v-card-item>
           <div>
@@ -279,7 +278,6 @@ import {
 import {getConstants, getMolData, getReferences} from "@/axiosClient";
 import {useTheme} from "vuetify";
 import FootNoteUtils from "@/utils/FootNoteUtils";
-import { useMeta } from 'vue-meta'
 import "openchemlib/full"
 import ElementDisplayUtils from "@/utils/ElementDisplayUtils";
 import katex from "katex"
@@ -293,7 +291,7 @@ import GroupByModel from "@/models/Group/GroupByModel";
 import GroupKeyModel from "@/models/Group/GroupKeyModel";
 import {unbalancedDataNameList} from "@/Constants";
 import UncertaintyUtils from "@/utils/UncertaintyUtils";
-import PreviewMethodsMixin from "@/mixins/PreviewMethodsMixin";
+import {PreviewMethodsMixin, IPreviewMethodsMixin} from "@/mixins/PreviewMethodsMixin";
 import RouterMixin from "@/mixins/RouterMixin";
 
 declare interface RequestFailedModel{
@@ -305,10 +303,8 @@ declare interface RequestFailedModel{
 export default defineComponent({
   name: "DetailView",
   mixins: [PreviewMethodsMixin, RouterMixin],
-  setup: () => {
-    useMeta({
-      title: 'Detail'
-    })
+  metaInfo: {
+    title: 'Detail'
   },
   data() {
     return {
@@ -326,7 +322,7 @@ export default defineComponent({
         { title: 'Ionic Strength (M)', align: 'center', key: 'ionic_strength' },
         { title: 'Value', align: 'start', key: 'value' },
         { title: 'FootNotes', key: 'data-table-expand' },
-      ],
+      ] as never,
       constants: [] as ConstantResultModel[],
       selectedSearchResult: null as ProcessedLigandAdvanceSearchResultModel | null,
       isLoading: true,
@@ -379,12 +375,12 @@ export default defineComponent({
       this.molLoaded = false
     },
     async loadPreview(){
-      if(!this.molData.drawCode) return
+      if(!this.molData?.drawCode) return
       if(this.isIn3DPreviewMode)
-        await this.load3DMol(this.molData.drawCode, this.notifyMolLoaded)
+        await (this as unknown as IPreviewMethodsMixin).load3DMol(this.molData.drawCode, this.notifyMolLoaded)
       else{
-        await this.load2DMol(this.molData.drawCode, this.notifyMolLoaded)
-        await this.load2DMol(this.molData.drawCode, this.notifyMolLoaded)
+        await (this as unknown as IPreviewMethodsMixin).load2DMol(this.molData.drawCode, this.notifyMolLoaded)
+        await (this as unknown as IPreviewMethodsMixin).load2DMol(this.molData.drawCode, this.notifyMolLoaded)
       }
 
       this.molLoaded = true
@@ -529,10 +525,10 @@ export default defineComponent({
           if(!result) return
 
           this.molData = result
-          await this.load2DMol(result.drawCode, this.notifyMolLoaded);
-          await this.load2DMol(result.drawCode, this.notifyMolLoaded);
+          await (this as unknown as IPreviewMethodsMixin).load2DMol(result.drawCode, this.notifyMolLoaded);
+          await (this as unknown as IPreviewMethodsMixin).load2DMol(result.drawCode, this.notifyMolLoaded);
 
-          const smiles = await this.getSmileCode(result.drawCode)
+          const smiles = await (this as unknown as IPreviewMethodsMixin).getSmileCode(result.drawCode)
 
           this.smileStr = smiles
         })

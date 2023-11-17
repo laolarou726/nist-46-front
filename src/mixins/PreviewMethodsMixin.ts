@@ -1,13 +1,15 @@
 import {srcLinks} from "@/Constants";
 import { defineComponent } from 'vue'
 
-interface PreviewMethodsMixin{
+export interface IPreviewMethodsMixin{
   loadPreviewScripts(): Promise<void>;
   unloadPreviewScripts(): Promise<void>;
-  getSmileCode(): Promise<string>;
+  getSmileCode(drawCode: string): Promise<string>;
+  load2DMol(drawCode: string, callback: () => void): Promise<void>;
+  load3DMol(drawCode: string, callback: () => void): Promise<void>;
 }
 
-export default defineComponent({
+export const PreviewMethodsMixin = defineComponent({
   methods: {
     async loadPreviewScripts(){
       for(const src of srcLinks){
@@ -83,4 +85,4 @@ export default defineComponent({
       await this.unloadPreviewScripts()
     }
   }
-}) as unknown as PreviewMethodsMixin;
+}) as unknown as IPreviewMethodsMixin;

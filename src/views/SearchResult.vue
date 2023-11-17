@@ -91,14 +91,14 @@
                 rounded="pill"
                 color="primary"
                 prepend-icon="mdi-share"
-                @click="goToDetailPage(item.raw)"
+                @click="goToDetailPage(item)"
               >
                 Detail
               </v-btn>
             </template>
             <template v-slot:[`item.preview`]="{ item }">
               <v-dialog
-                v-model="item.raw.showDialog"
+                v-model="item.showDialog"
                 width="auto"
               >
                 <template v-slot:activator="{ props }">
@@ -106,37 +106,37 @@
                 </template>
                 <v-card title="Mol Preview (2D)">
                   <div id="mol2D" :style="molViewStyle" class="pa-5 mt-3"
-                        v-if="item.raw.previewLoaded"></div>
+                        v-if="item.previewLoaded"></div>
                   <v-card-text>
                     Click [Load] To Load The Preview For This Ligand.
                   </v-card-text>
                   <v-alert
                     type="error"
                     variant="outlined"
-                    v-if="item.raw.noPreviewAvailable"
+                    v-if="item.noPreviewAvailable"
                     class="ml-5 mr-5"
                   >
                     No Preview Available For This Ligand!
                   </v-alert>
                   <v-card-actions>
-                    <v-btn color="primary" class="ml-4" variant="elevated" @click="loadPreview(item.raw)" prepend-icon="mdi-cube-scan" :loading="item.raw.previewLoading">Load</v-btn>
+                    <v-btn color="primary" class="ml-4" variant="elevated" @click="loadPreview(item)" prepend-icon="mdi-cube-scan" :loading="item.previewLoading">Load</v-btn>
                     <v-spacer></v-spacer>
-                    <v-btn color="secondary" class="mr-2" @click="item.raw.showDialog = false; item.raw.previewLoaded = false">Close Dialog</v-btn>
+                    <v-btn color="secondary" class="mr-2" @click="item.showDialog = false; item.previewLoaded = false">Close Dialog</v-btn>
                   </v-card-actions>
                 </v-card>
               </v-dialog>
             </template>
             <template v-slot:[`item.molecular_formula`]="{ item }">
-              <div v-html="item.raw.molecular_formula"></div>
+              <div v-html="item.molecular_formula"></div>
             </template>
             <template v-slot:[`item.form`]="{ item }">
-              <div class="no-katex-html" v-html="getFormattedProtonationForm(item.raw.form)"></div>
+              <div class="no-katex-html" v-html="getFormattedProtonationForm(item.form)"></div>
             </template>
             <template v-slot:[`item.metal_charge`]="{ item }">
-              {{ (item.raw.metal_charge > 0 ? `+${item.raw.metal_charge}` : item.raw.metal_charge) }}
+              {{ (+item.metal_charge > 0 ? `+${item.metal_charge}` : item.metal_charge) }}
             </template>
             <template v-slot:[`item.formula_string`]="{ item }">
-              <div class="no-katex-html" v-html="getFormattedMetalForm(item.raw.formula_string)"></div>
+              <div class="no-katex-html" v-html="getFormattedMetalForm(item.formula_string)"></div>
             </template>
           </v-data-table>
         </v-col>
@@ -149,7 +149,6 @@
 import "@/assets/latex.css"
 import { defineComponent } from 'vue'
 import {searchResultStore} from "@/stores/searchResultStore";
-import {useMeta} from "vue-meta";
 import katex from "katex";
 import "openchemlib/full"
 import MetalDisplayUtils from "@/utils/MetalDisplayUtils";
@@ -158,7 +157,7 @@ import GroupByModel from "@/models/Group/GroupByModel";
 import GroupKeyModel from "@/models/Group/GroupKeyModel";
 import {LigandSearchResultModel, ProcessedLigandAdvanceSearchResultModel} from "@/models/LigandSearchResultModel";
 import {getMolData} from "@/axiosClient";
-import PreviewMethodsMixin from "@/mixins/PreviewMethodsMixin";
+import {PreviewMethodsMixin, IPreviewMethodsMixin} from "@/mixins/PreviewMethodsMixin";
 import {useTheme} from "vuetify";
 import RouterMixin from "@/mixins/RouterMixin";
 
@@ -173,10 +172,8 @@ const filterKeyMapping: Record<string, string> = {
 export default defineComponent({
   name: "SearchResult",
   mixins: [PreviewMethodsMixin, RouterMixin],
-  setup: () => {
-    useMeta({
-      title: 'Search Results'
-    })
+  metaInfo: {
+    title: 'Search Results'
   },
   data: () => ({
     itemsPerPage: 50,
@@ -186,13 +183,13 @@ export default defineComponent({
       {
         title: 'Name',
         align: 'start',
-        key: 'name',
+        key: 'name'
       },
       { title: 'Protonation Level', align: 'end', key: 'form' },
       { title: 'Metal Charge', align: 'end', key: 'metal_charge' },
       { title: 'Formula String', align: 'end', key: 'formula_string'}
-    ],
-    searchResult: [] as LigandSearchResultModel[],
+    ] as never,
+    searchResult: [] as ProcessedLigandAdvanceSearchResultModel[],
     groupBy: [] as GroupByModel[],
     groupKeys: [] as GroupKeyModel[]
   }),
@@ -239,7 +236,7 @@ export default defineComponent({
 
         item.drawCode = result.drawCode
         item.previewLoaded = true
-        await this.load2DMol(item.drawCode)
+        await (this as unknown as IPreviewMethodsMixin).load2DMol(item.drawCode, () => {})
       })
       .catch(err => {
         console.log(err)

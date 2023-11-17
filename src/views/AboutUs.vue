@@ -73,7 +73,6 @@
 
 <script lang="ts">
 import { toSvg } from "jdenticon";
-import {useMeta} from "vue-meta";
 
 declare interface MemberInfo{
   name: string;
@@ -84,10 +83,8 @@ declare interface MemberInfo{
 
 export default {
   name: "AboutUs",
-  setup: () => {
-    useMeta({
-      title: 'About Us'
-    })
+  metaInfo: {
+    title: 'About Us'
   },
   data: () => ({
     teamMembers: [
@@ -112,7 +109,7 @@ export default {
     ] as MemberInfo[]
   }),
   methods: {
-    getRandomAvatar(id){
+    getRandomAvatar(id: string){
       return toSvg(id, 40)
     },
     openNistWebsite(){
