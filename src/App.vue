@@ -32,9 +32,7 @@
       </v-app-bar>
 
       <router-view v-slot="{ Component }">
-        <keep-alive>
-          <component :is="Component" />
-        </keep-alive>
+        <component :is="Component" />
       </router-view>
 
       <v-navigation-drawer
