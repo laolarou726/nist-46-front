@@ -49,7 +49,7 @@
 
       <v-container class="pa-0 mt-8">
         <v-row no-gutters>
-          <v-col :class="$vuetify.display.xs ? '' : 'pr-3'" xs="12" :lg="(molData ? 6 : 12)">
+          <v-col :class="$vuetify.display.xs ? '' : 'pr-3 pt-5'" xs="12" :lg="(molData ? 6 : 12)">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
@@ -97,7 +97,8 @@
               </div>
             </v-card>
           </v-col>
-          <v-col v-if="molData" xs="12" lg="6">
+          <v-col v-if="molData" xs="12" lg="6"
+                 :class="$vuetify.display.xs ? '' : 'pt-5'">
             <v-card
               class="mx-auto fill-height"
               variant="outlined"
