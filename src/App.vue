@@ -1,4 +1,5 @@
 <template>
+  <SpeedInsights />
   <metainfo>
     <template v-slot:title="{ content }">{{ content ? `${content} | WRASCAL` : `WRASCAL` }}</template>
   </metainfo>
@@ -92,6 +93,10 @@
     </v-main>
   </v-app>
 </template>
+
+<script setup lang="ts">
+import { SpeedInsights } from '@vercel/speed-insights/vue';
+</script>
 
 <script lang="ts">
 

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mdi/font": "^7.3.67",
+    "@vercel/speed-insights": "^1.0.10",
     "axios": "^1.6.2",
     "jdenticon": "^3.2.0",
     "katex": "^0.16.9",
